@@ -1,25 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-		<meta name="description" content="">
-		<meta name="author" content="">
-		<link rel="icon" href="favicon.ico">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-		<title>cc-sketch | Matthijs Kamstra aka [mck]</title>
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<!-- <link rel="icon" href="favicon.ico"> -->
+	<link rel="icon" href="icon.jpg">
 
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.css">
-		<link rel="stylesheet" href="css/style.css">
+	<title>cc-gamepad | Matthijs Kamstra aka [mck]</title>
 
-	</head>
-	<body>
-		<!-- quicksettings to the rescue! -->
-		<script type="text/javascript" src="https://cdn.jsdelivr.net/quicksettings/3.0.2/quicksettings.min.js"></script>
-		<!-- Code generated using Haxe -->
-		<script type="text/javascript" src="cc_example.js"></script>
-	</body>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.css">
+	<link rel="stylesheet" href="css/style.css">
+
+	<style>
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+		}
+
+		.axes {
+			padding: 1em;
+		}
+
+		.buttons {
+			margin-left: 1em;
+		}
+
+		/*meter*/
+		.axis {
+			min-width: 200px;
+			margin: 1em;
+		}
+
+		.button {
+			display: inline;
+			/* width: 2em; */
+			/* height: 2em; */
+			text-align: center;
+			padding: 1em;
+			margin: 2px;
+			border-radius: 50%;
+			border: 1px solid black;
+			font-family: monospace;
+			background-color: silver;
+
+		}
+
+		.pressed {
+			border: 1px solid red;
+			background-color: yellow;
+		}
+
+		#name-button {
+			padding: 10px;
+			border: 1px solid pink;
+			display: block;
+			margin: 10px;
+		}
+	</style>
+
+
+</head>
+
+<body>
+	<!-- Code generated using Haxe -->
+	<script type="text/javascript" src="cc_gamepad.js"></script>
+</body>
+
 </html>

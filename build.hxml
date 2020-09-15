@@ -9,7 +9,7 @@
 # -lib uglifyjs
 -cp src
 -main Main
--js docs/cc_example.js
+-js docs/cc_gamepad.js
 # -D source-map-content
 # -D state=debug
 -debug

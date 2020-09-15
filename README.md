@@ -1,11 +1,11 @@
-# cc-init
+# cc-gamepad
 
 Creative Coding init.
 
 A quick start with cc-sketch-plus.
 
 <p align="center">
-  <img src="icon.jpg" />
+  <img src="icon.png" />
 </p>
 
 ## Haxelib
