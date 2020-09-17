@@ -6,15 +6,48 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
+var haxe_ds_StringMap = function() {
+	this.h = Object.create(null);
+};
+haxe_ds_StringMap.__name__ = true;
+haxe_ds_StringMap.keysIterator = function(h) {
+	var keys = Object.keys(h);
+	var len = keys.length;
+	var idx = 0;
+	return { hasNext : function() {
+		return idx < len;
+	}, next : function() {
+		idx += 1;
+		return keys[idx - 1];
+	}};
+};
+var haxe_ds_IntMap = function() {
+	this.h = { };
+};
+haxe_ds_IntMap.__name__ = true;
+haxe_ds_IntMap.prototype = {
+	keys: function() {
+		var a = [];
+		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
+		return new haxe_iterators_ArrayIterator(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i];
+		}};
+	}
+};
 var CCGamepad = function() {
 	this.previousButtonID = null;
 	this.axisMap = new haxe_ds_IntMap();
 	this.btnMap = new haxe_ds_IntMap();
 	this._options = { };
-	this.map = new haxe_ds_IntMap();
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " Dom ready :: build: " + "2020-09-17 10:40:01");
+		$global.console.log("" + model_constants_App.NAME + " Dom ready :: build: " + "2020-09-17 13:26:50");
 		_gthis.init();
 	});
 };
@@ -24,15 +57,41 @@ CCGamepad.main = function() {
 };
 CCGamepad.prototype = {
 	setup: function() {
+		haxe_Log.trace(CCGamepad.AXIS_MAP.h["{x:1,y:0}"],{ fileName : "src/CCGamepad.hx", lineNumber : 111, className : "CCGamepad", methodName : "setup"});
+		var key = haxe_ds_StringMap.keysIterator(CCGamepad.AXIS_MAP.h);
+		while(key.hasNext()) {
+			var key1 = key.next();
+			haxe_Log.trace(key1,{ fileName : "src/CCGamepad.hx", lineNumber : 114, className : "CCGamepad", methodName : "setup", customParams : [CCGamepad.AXIS_MAP.h[key1]]});
+		}
 		this.init();
 	}
-	,onUpdate: function(func,arr) {
-		this._options.onUpdate = func;
-		this._options.onUpdateParams = arr;
+	,onButton: function(func,arr) {
+		this._options.onButton = func;
+		this._options.onButtonParams = arr;
+	}
+	,onAxis: function(func,arr) {
+		this._options.onAxis = func;
+		this._options.onAxisParams = arr;
 	}
 	,onSelect: function(func,arr) {
 		this._options.onSelect = func;
 		this._options.onSelectParams = arr;
+		this._options.onSelectOnce = false;
+	}
+	,onSelectOnce: function(func,arr) {
+		this._options.onSelect = func;
+		this._options.onSelectParams = arr;
+		this._options.onSelectOnce = true;
+	}
+	,onLeftBottomOnce: function(func,arr) {
+		this._options.onLeftBottom = func;
+		this._options.onLeftBottomParams = arr;
+		this._options.onLeftBottomOnce = true;
+	}
+	,onRightBottomOnce: function(func,arr) {
+		this._options.onRightBottom = func;
+		this._options.onRightBottomParams = arr;
+		this._options.onRightBottomOnce = true;
 	}
 	,onStart: function(func,arr) {
 		this._options.onStart = func;
@@ -61,22 +120,6 @@ CCGamepad.prototype = {
 		window.addEventListener("gamepadbuttondown",$bind(this,this.onGamepadButtonDownHandler));
 		window.addEventListener("gamepadbuttonup",$bind(this,this.onGamepadButtonUpHandler));
 		window.addEventListener("gamepadaxismove",$bind(this,this.onGamepadAxisMoveHandler));
-	}
-	,setupControllerValues: function() {
-		var gamepad = $global.navigator.getGamepads()[0];
-		var btnMap = new haxe_ds_IntMap();
-		btnMap.h[0] = "X";
-		btnMap.h[1] = "A";
-		btnMap.h[2] = "B";
-		btnMap.h[3] = "Y";
-		btnMap.h[4] = "Left Bottom";
-		btnMap.h[5] = "Right Bottom";
-		btnMap.h[6] = "";
-		btnMap.h[7] = "";
-		btnMap.h[8] = "Select";
-		btnMap.h[9] = "Start";
-		var _GamePadObject = { _id : gamepad.id, alias : "fake super nintendo controller (snes)", gamepad : gamepad, buttonMap : btnMap};
-		this.map.h[0] = _GamePadObject;
 	}
 	,setupInterface: function() {
 		var gamepad = $global.navigator.getGamepads()[0];
@@ -120,8 +163,8 @@ CCGamepad.prototype = {
 			this.axisMap.h[i] = p;
 		}
 		d.appendChild(a);
-		var pre = window.document.createElement("pre");
-		pre.innerText = "- id: " + gamepad.id + " \n- connected: " + (gamepad.connected == null ? "null" : "" + gamepad.connected) + "\n- index: " + gamepad.index;
+		var pre = window.document.createElement("div");
+		pre.innerText = "- index: " + gamepad.index + "\n- id: \"" + gamepad.id + "\"\n- timestamp: " + gamepad.timestamp + "\n- mapping: " + gamepad.mapping + "\n- connected: " + (gamepad.connected == null ? "null" : "" + gamepad.connected) + "\n- buttons: " + gamepad.buttons.length + "\n- axes: " + gamepad.axes.length;
 		d.appendChild(pre);
 		var start = window.document.getElementById("start-screen");
 		if(start != null) {
@@ -131,7 +174,6 @@ CCGamepad.prototype = {
 	}
 	,onGamepadConnectedHandler: function(e) {
 		$global.console.log("Gamepad connected",e.gamepad);
-		this.setupControllerValues();
 		this.setupInterface();
 		this.gameLoop();
 	}
@@ -166,30 +208,48 @@ CCGamepad.prototype = {
 			if(currentButton.pressed) {
 				var el = this.btnMap.h[i];
 				el.classList.add("pressed");
-				var _gamePadObject = this.map.h[0];
-				var temp = _gamePadObject.buttonMap.h[i];
-				this.btnNameField.innerText = temp;
+				this.btnNameField.innerText = CCGamepad.BUTTON_MAP.h[i];
 				switch(i) {
-				case CCGamepad.BUTTON_SELECT:
-					var _func = this._options.onSelect;
-					var _arr = this._options.onSelectParams != null ? this._options.onSelectParams : [currentButton];
-					_func.apply(_func,_arr);
+				case CCGamepad.BUTTON_LEFT_BOTTOM:
+					var _func = this._options.onLeftBottom;
+					var _arr = this._options.onLeftBottomParams != null ? this._options.onLeftBottomParams : [gamepad.timestamp];
+					if(this._options.onLeftBottomOnce == true && this.previousButtonID != i) {
+						_func.apply(_func,_arr);
+					} else if(this._options.onLeftBottomOnce == false) {
+						_func.apply(_func,_arr);
+					}
 					break;
-				case CCGamepad.BUTTON_START:
-					var _func1 = this._options.onStart;
-					var _arr1 = this._options.onStartParams != null ? this._options.onStartParams : [currentButton];
-					if(this._options.onStartOnce == true && this.previousButtonID != i) {
+				case CCGamepad.BUTTON_RIGHT_BOTTOM:
+					var _func1 = this._options.onRightBottom;
+					var _arr1 = this._options.onRightBottomParams != null ? this._options.onRightBottomParams : [gamepad.timestamp];
+					if(this._options.onRightBottomOnce == true && this.previousButtonID != i) {
+						_func1.apply(_func1,_arr1);
+					} else if(this._options.onRightBottomOnce == false) {
 						_func1.apply(_func1,_arr1);
 					}
-					if(this._options.onStartOnce == false) {
-						_func1.apply(_func1,_arr1);
+					break;
+				case CCGamepad.BUTTON_SELECT:
+					var _func2 = this._options.onSelect;
+					var _arr2 = this._options.onSelectParams != null ? this._options.onSelectParams : [gamepad.timestamp];
+					if(this._options.onSelectOnce == true && this.previousButtonID != i) {
+						_func2.apply(_func2,_arr2);
+					} else if(this._options.onSelectOnce == false) {
+						_func2.apply(_func2,_arr2);
+					}
+					break;
+				case CCGamepad.BUTTON_START:
+					var _func3 = this._options.onStart;
+					var _arr3 = this._options.onStartParams != null ? this._options.onStartParams : [gamepad.timestamp];
+					if(this._options.onStartOnce == true && this.previousButtonID != i) {
+						_func3.apply(_func3,_arr3);
+					} else if(this._options.onStartOnce == false) {
+						_func3.apply(_func3,_arr3);
 					}
 					break;
 				default:
-					console.log("src/CCGamepad.hx:280:","case '" + i + "': trace ('" + i + "');");
-					var _func2 = this._options.onUpdate;
-					var _arr2 = this._options.onUpdateParams != null ? this._options.onUpdateParams : [currentButton];
-					_func2.apply(_func2,_arr2);
+					var _func4 = this._options.onButton;
+					var _arr4 = this._options.onButtonParams != null ? this._options.onButtonParams : [CCGamepad.BUTTON_MAP.h[i]];
+					_func4.apply(_func4,_arr4);
 				}
 				this.previousButtonID = i;
 			}
@@ -204,29 +264,15 @@ CCGamepad.prototype = {
 			a.setAttribute("value",Std.string(gamepad.axes[i] + 1));
 			var joystickX = this.applyDeadzone(gamepad.axes[gamepad.axes.length - 2],0.25);
 			var joystickY = this.applyDeadzone(gamepad.axes[gamepad.axes.length - 1],0.25);
-			if(joystickX == 1) {
-				this.btnNameField.innerText = "→";
+			var joystickStr = "{x:" + joystickX + ",y:" + joystickY + "}";
+			var joystickObj = { x : joystickX, y : joystickY, desc : CCGamepad.AXIS_MAP.h[joystickStr]};
+			if(!(joystickX == 0 && joystickY == 0)) {
+				this.btnNameField.innerText = CCGamepad.AXIS_MAP.h[joystickStr];
 			}
-			if(joystickX == -1) {
-				this.btnNameField.innerText = "←";
-			}
-			if(joystickY == 1) {
-				this.btnNameField.innerText = "↓";
-			}
-			if(joystickY == -1) {
-				this.btnNameField.innerText = "↑";
-			}
-			if(joystickX == 1 && joystickY == 1) {
-				this.btnNameField.innerText = "↘";
-			}
-			if(joystickX == 1 && joystickY == -1) {
-				this.btnNameField.innerText = "↗";
-			}
-			if(joystickX == -1 && joystickY == 1) {
-				this.btnNameField.innerText = "↙";
-			}
-			if(joystickX == -1 && joystickY == -1) {
-				this.btnNameField.innerText = "↖";
+			if(joystickX != 0 || joystickY != 0) {
+				var _func = this._options.onAxis;
+				var _arr = this._options.onAxisParams != null ? this._options.onAxisParams : [joystickObj];
+				_func.apply(_func,_arr);
 			}
 		}
 		this.start = window.requestAnimationFrame($bind(this,this.gameLoop));
@@ -242,7 +288,7 @@ CCGamepad.prototype = {
 var Main = function() {
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " Setup :: build: " + "2020-09-17 10:40:01");
+		$global.console.log("" + model_constants_App.NAME + " Setup :: build: " + "2020-09-17 13:28:05");
 		_gthis.init();
 	});
 };
@@ -254,9 +300,12 @@ Main.prototype = {
 	init: function() {
 		var gamePad = new SNES();
 		gamePad.setup();
-		gamePad.onSelect($bind(this,this.onSelectHandler));
+		gamePad.onSelectOnce($bind(this,this.onSelectHandler));
 		gamePad.onStartOnce($bind(this,this.onStartHandler));
-		gamePad.onUpdate($bind(this,this.onUpdateHandler));
+		gamePad.onLeftBottomOnce($bind(this,this.onLeftBottomHandler));
+		gamePad.onRightBottomOnce($bind(this,this.onRightBottomHandler));
+		gamePad.onButton($bind(this,this.onButton));
+		gamePad.onAxis($bind(this,this.onAxis));
 	}
 	,onSelectHandler: function(e) {
 		$global.console.log("onSelectHandler: ",e);
@@ -264,13 +313,72 @@ Main.prototype = {
 	,onStartHandler: function(e) {
 		$global.console.log("onStartHandler: ",e);
 	}
-	,onUpdateHandler: function(e) {
-		$global.console.log("onUpdateHandler: ",e);
+	,onLeftBottomHandler: function(e) {
+		$global.console.log("onLeftBottomHandler: ",e);
+	}
+	,onRightBottomHandler: function(e) {
+		$global.console.log("onRightBottomHandler: ",e);
+	}
+	,onAxis: function(e) {
+		var _g = e.desc;
+		if(_g == null) {
+			haxe_Log.trace("case '" + Std.string(e) + "': trace ('" + Std.string(e) + "');",{ fileName : "src/Main.hx", lineNumber : 66, className : "Main", methodName : "onAxis"});
+		} else {
+			switch(_g) {
+			case CCGamepad.AXIS_CENTER_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_DOWN_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_DOWN_LEFT_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_DOWN_RIGHT_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_LEFT_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_RIGHT_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_UP_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_UP_LEFT_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			case CCGamepad.AXIS_UP_RIGHT_DISC:
+				$global.console.log("--> " + e.desc);
+				break;
+			default:
+				haxe_Log.trace("case '" + Std.string(e) + "': trace ('" + Std.string(e) + "');",{ fileName : "src/Main.hx", lineNumber : 66, className : "Main", methodName : "onAxis"});
+			}
+		}
+	}
+	,onButton: function(disc) {
+		switch(disc) {
+		case CCGamepad.BUTTON_A_DISC:
+			$global.console.log("--> " + disc);
+			break;
+		case CCGamepad.BUTTON_B_DISC:
+			$global.console.log("--> " + disc);
+			break;
+		case CCGamepad.BUTTON_X_DISC:
+			$global.console.log("--> " + disc);
+			break;
+		case CCGamepad.BUTTON_Y_DISC:
+			$global.console.log("--> " + disc);
+			break;
+		default:
+			haxe_Log.trace("case '" + disc + "': trace ('" + disc + "');",{ fileName : "src/Main.hx", lineNumber : 82, className : "Main", methodName : "onButton"});
+		}
 	}
 };
 Math.__name__ = true;
 var SNES = function() {
-	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-17 10:40:01");
+	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-17 13:26:50");
 	CCGamepad.call(this);
 };
 SNES.__name__ = true;
@@ -282,23 +390,29 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
-var haxe_ds_IntMap = function() {
-	this.h = { };
-};
-haxe_ds_IntMap.__name__ = true;
-haxe_ds_IntMap.prototype = {
-	keys: function() {
-		var a = [];
-		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
-		return new haxe_iterators_ArrayIterator(a);
+var haxe_Log = function() { };
+haxe_Log.__name__ = true;
+haxe_Log.formatOutput = function(v,infos) {
+	var str = Std.string(v);
+	if(infos == null) {
+		return str;
 	}
-	,iterator: function() {
-		return { ref : this.h, it : this.keys(), hasNext : function() {
-			return this.it.hasNext();
-		}, next : function() {
-			var i = this.it.next();
-			return this.ref[i];
-		}};
+	var pstr = infos.fileName + ":" + infos.lineNumber;
+	if(infos.customParams != null) {
+		var _g = 0;
+		var _g1 = infos.customParams;
+		while(_g < _g1.length) {
+			var v = _g1[_g];
+			++_g;
+			str += ", " + Std.string(v);
+		}
+	}
+	return pstr + ": " + str;
+};
+haxe_Log.trace = function(v,infos) {
+	var str = haxe_Log.formatOutput(v,infos);
+	if(typeof(console) != "undefined" && console.log != null) {
+		console.log(str);
 	}
 };
 var haxe_iterators_ArrayIterator = function(array) {
@@ -388,6 +502,39 @@ $global.$haxeUID |= 0;
 String.__name__ = true;
 Array.__name__ = true;
 js_Boot.__toStr = ({ }).toString;
+CCGamepad.AXIS_RIGHT = "{x:1,y:0}";
+CCGamepad.AXIS_LEFT = "{x:-1,y:0}";
+CCGamepad.AXIS_DOWN = "{x:0,y:1}";
+CCGamepad.AXIS_UP = "{x:0,y:-1}";
+CCGamepad.AXIS_DOWN_RIGHT = "{x:1,y:1}";
+CCGamepad.AXIS_DOWN_LEFT = "{x:-1,y:1}";
+CCGamepad.AXIS_UP_RIGHT = "{x:1,y:-1}";
+CCGamepad.AXIS_UP_LEFT = "{x:-1,y:-1}";
+CCGamepad.AXIS_CENTER = "{x:0,y:0}";
+CCGamepad.AXIS_RIGHT_DISC = "→";
+CCGamepad.AXIS_LEFT_DISC = "←";
+CCGamepad.AXIS_DOWN_DISC = "↓";
+CCGamepad.AXIS_UP_DISC = "↑";
+CCGamepad.AXIS_DOWN_RIGHT_DISC = "↘";
+CCGamepad.AXIS_DOWN_LEFT_DISC = "↙";
+CCGamepad.AXIS_UP_RIGHT_DISC = "↗";
+CCGamepad.AXIS_UP_LEFT_DISC = "↖";
+CCGamepad.AXIS_CENTER_DISC = "×";
+CCGamepad.AXIS_MAP = (function($this) {
+	var $r;
+	var _g = new haxe_ds_StringMap();
+	_g.h[CCGamepad.AXIS_RIGHT] = CCGamepad.AXIS_RIGHT_DISC;
+	_g.h[CCGamepad.AXIS_LEFT] = CCGamepad.AXIS_LEFT_DISC;
+	_g.h[CCGamepad.AXIS_DOWN] = CCGamepad.AXIS_DOWN_DISC;
+	_g.h[CCGamepad.AXIS_UP] = CCGamepad.AXIS_UP_DISC;
+	_g.h[CCGamepad.AXIS_DOWN_RIGHT] = CCGamepad.AXIS_DOWN_RIGHT_DISC;
+	_g.h[CCGamepad.AXIS_DOWN_LEFT] = CCGamepad.AXIS_DOWN_LEFT_DISC;
+	_g.h[CCGamepad.AXIS_UP_RIGHT] = CCGamepad.AXIS_UP_RIGHT_DISC;
+	_g.h[CCGamepad.AXIS_UP_LEFT] = CCGamepad.AXIS_UP_LEFT_DISC;
+	_g.h[CCGamepad.AXIS_CENTER] = CCGamepad.AXIS_CENTER_DISC;
+	$r = _g;
+	return $r;
+}(this));
 CCGamepad.BUTTON_X = 0;
 CCGamepad.BUTTON_A = 1;
 CCGamepad.BUTTON_B = 2;
@@ -396,6 +543,28 @@ CCGamepad.BUTTON_LEFT_BOTTOM = 4;
 CCGamepad.BUTTON_RIGHT_BOTTOM = 5;
 CCGamepad.BUTTON_SELECT = 8;
 CCGamepad.BUTTON_START = 9;
+CCGamepad.BUTTON_X_DISC = "X";
+CCGamepad.BUTTON_A_DISC = "A";
+CCGamepad.BUTTON_B_DISC = "B";
+CCGamepad.BUTTON_Y_DISC = "Y";
+CCGamepad.BUTTON_LEFT_BOTTOM_DISC = "Left Bottom";
+CCGamepad.BUTTON_RIGHT_BOTTOM_DISC = "Right Bottom";
+CCGamepad.BUTTON_SELECT_DISC = "Select";
+CCGamepad.BUTTON_START_DISC = "Start";
+CCGamepad.BUTTON_MAP = (function($this) {
+	var $r;
+	var _g = new haxe_ds_IntMap();
+	_g.h[CCGamepad.BUTTON_X] = CCGamepad.BUTTON_X_DISC;
+	_g.h[CCGamepad.BUTTON_A] = CCGamepad.BUTTON_A_DISC;
+	_g.h[CCGamepad.BUTTON_B] = CCGamepad.BUTTON_B_DISC;
+	_g.h[CCGamepad.BUTTON_Y] = CCGamepad.BUTTON_Y_DISC;
+	_g.h[CCGamepad.BUTTON_LEFT_BOTTOM] = CCGamepad.BUTTON_LEFT_BOTTOM_DISC;
+	_g.h[CCGamepad.BUTTON_RIGHT_BOTTOM] = CCGamepad.BUTTON_RIGHT_BOTTOM_DISC;
+	_g.h[CCGamepad.BUTTON_SELECT] = CCGamepad.BUTTON_SELECT_DISC;
+	_g.h[CCGamepad.BUTTON_START] = CCGamepad.BUTTON_START_DISC;
+	$r = _g;
+	return $r;
+}(this));
 SNES.BUTTON_X = 0;
 SNES.BUTTON_A = 1;
 SNES.BUTTON_B = 2;
