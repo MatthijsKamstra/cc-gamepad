@@ -1,5 +1,7 @@
 package;
 
+import haxe.zip.Reader;
+import haxe.Constraints.Function;
 import js.html.SpanElement;
 import haxe.Json;
 import js.html.ProgressElement;
@@ -22,13 +24,24 @@ using StringTools;
 // https://github.com/luser/gamepadtest/blob/master/gamepadtest.js
 // checked in firefox and Chrome.. the rest I don't use
 class CCGamepad {
-	var controllers:Array<Gamepad> = []; // {};
+	// var controllers:Array<Gamepad> = []; // {};
 	var map:Map<Int, GamePadObject> = new Map();
 	var start:Dynamic;
-	var gamePads:Array<Gamepad>;
-	var gamepad:Gamepad; // 0
 
+	// var gamePads:Array<Gamepad>;
+	// var gamepad:Gamepad; // 0
 	var btnNameField:DivElement;
+
+	private var _options:SettingsObject = cast {};
+
+	public static final BUTTON_X = 0;
+	public static final BUTTON_A = 1;
+	public static final BUTTON_B = 2;
+	public static final BUTTON_Y = 3;
+	public static final BUTTON_LEFT_BOTTOM = 4;
+	public static final BUTTON_RIGHT_BOTTOM = 5;
+	public static final BUTTON_SELECT = 8;
+	public static final BUTTON_START = 9;
 
 	public function new() {
 		// trace('START :: CCGamepad');
@@ -37,6 +50,36 @@ class CCGamepad {
 			init();
 		});
 	}
+
+	// ____________________________________ public  ____________________________________
+
+	public function setup() {
+		init();
+	}
+
+	public function onUpdate(func:Function, ?arr:Array<Dynamic>) {
+		_options.onUpdate = func;
+		_options.onUpdateParams = arr;
+	}
+
+	public function onSelect(func:Function, ?arr:Array<Dynamic>) {
+		_options.onSelect = func;
+		_options.onSelectParams = arr;
+	}
+
+	public function onStart(func:Function, ?arr:Array<Dynamic>) {
+		_options.onStart = func;
+		_options.onStartParams = arr;
+		_options.onStartOnce = false;
+	}
+
+	public function onStartOnce(func:Function, ?arr:Array<Dynamic>) {
+		_options.onStart = func;
+		_options.onStartParams = arr;
+		_options.onStartOnce = true;
+	}
+
+	// ____________________________________ init ____________________________________
 
 	function init() {
 		setupStart();
@@ -63,6 +106,8 @@ class CCGamepad {
 	}
 
 	function setupControllerValues() {
+		var gamepad = navigator.getGamepads()[0];
+
 		var btnMap:Map<Int, String> = [];
 		btnMap.set(0, 'X');
 		btnMap.set(1, 'A');
@@ -87,6 +132,7 @@ class CCGamepad {
 	var axisMap:Map<Int, ProgressElement> = [];
 
 	function setupInterface() {
+		var gamepad = navigator.getGamepads()[0];
 		var btnArray = gamepad.buttons;
 		var axixArray = gamepad.axes;
 
@@ -149,27 +195,21 @@ class CCGamepad {
 		// Gamepad connected
 		console.log("Gamepad connected", e.gamepad);
 
-		gamePads = navigator.getGamepads();
-		console.log(gamePads);
-
-		gamepad = navigator.getGamepads()[0];
-		console.log(gamepad);
-
 		setupControllerValues();
 		setupInterface();
 
-		// gameLoop();
-		timeoutVariable = window.setInterval(gameLoop, 500);
+		gameLoop();
+		// timeoutVariable = window.setInterval(gameLoop, 500);
 	}
 
-	var timeoutVariable:Int;
+	// var timeoutVariable:Int;
 
 	function onGamepadDisconnectedHandler(e:GamepadEvent) {
 		// Gamepad disconnected
 		console.log("Gamepad disconnected", e.gamepad);
 		// removegamepad(e.gamepad);
 		window.cancelAnimationFrame(start);
-		window.clearTimeout(timeoutVariable);
+		// window.clearTimeout(timeoutVariable);
 	}
 
 	function onGamepadButtonDownHandler(e) {
@@ -188,28 +228,114 @@ class CCGamepad {
 	}
 
 	// ____________________________________ gameLoop____________________________________
+	var previousButtonID:Int = null;
 
 	function gameLoop(?value) {
-		trace('');
+		var gamepad = navigator.getGamepads()[0];
 		for (el in btnMap) {
 			el.classList.remove('pressed');
 		}
 
-		// trace(gamepad.buttons.length);
+		// reset previous value if button is released
+		if (previousButtonID != null && !gamepad.buttons[previousButtonID].pressed) {
+			previousButtonID = null;
+		}
 
 		for (i in 0...gamepad.buttons.length) {
-			var _button:GamepadButton = gamepad.buttons[i];
-			// console.log(_button);
-			if (_button.pressed) {
+			var currentButton:GamepadButton = gamepad.buttons[i];
+			// console.log(currentButton);
+
+			if (currentButton.pressed) {
 				var el = btnMap.get(i);
 				el.classList.add('pressed');
 				var _gamePadObject = map.get(0);
 				var temp = _gamePadObject.buttonMap.get(i);
 				btnNameField.innerText = temp;
+				switch (i) {
+					case BUTTON_SELECT:
+						var _func = _options.onSelect;
+						var _arr = (_options.onSelectParams != null) ? _options.onSelectParams : [currentButton];
+						Reflect.callMethod(_func, _func, _arr);
+					case BUTTON_START:
+						var _func = _options.onStart;
+						var _arr = (_options.onStartParams != null) ? _options.onStartParams : [currentButton];
+
+						// console.group('_options');
+						// console.log(_options.onStart);
+						// // console.log(_options.onStartParams);
+						// console.log(_options.onStartOnce);
+						// console.log(previousButtonID);
+						// console.log(i);
+						// console.log(previousButtonID != i);
+						// console.groupEnd();
+
+						if (_options.onStartOnce == true && previousButtonID != i) {
+							Reflect.callMethod(_func, _func, _arr);
+						}
+						if (_options.onStartOnce == false) {
+							Reflect.callMethod(_func, _func, _arr);
+						}
+					default:
+						trace("case '" + i + "': trace ('" + i + "');");
+						var _func = _options.onUpdate;
+						var _arr = (_options.onUpdateParams != null) ? _options.onUpdateParams : [currentButton];
+						Reflect.callMethod(_func, _func, _arr);
+				}
+				previousButtonID = i;
 			}
 		}
 
-		// start = window.requestAnimationFrame(gameLoop);
+		var axes = document.getElementsByClassName("axis");
+		for (i in 0...gamepad.axes.length) {
+			var a = axes[i];
+			// a.innerHTML = i + ": " + Syntax.code("(controller.axes[i]).toFixed(4)");
+			a.innerHTML = i + ": " + gamepad.axes[i];
+			a.setAttribute("value", Std.string(gamepad.axes[i] + 1));
+
+			// console.log(gamepad.axes[i]);
+			var joystickX = applyDeadzone(gamepad.axes[gamepad.axes.length - 2], 0.25);
+			var joystickY = applyDeadzone(gamepad.axes[gamepad.axes.length - 1], 0.25);
+			// var joystickZ = applyDeadzone(gamepad.axes[0], 0.25);
+			// if (joystickX >= 1 || joystickX <= -1) {
+			// 	btnNameField.innerText = 'horizontal ${joystickX}';
+			// 	if (joystickX == 1)
+			// 		btnNameField.innerText += '→';
+			// 	if (joystickX == -1)
+			// 		btnNameField.innerText += '←';
+			// }
+			// if (joystickY >= 1 || joystickY <= -1) {
+			// 	btnNameField.innerText = 'vertical ${joystickY}';
+			// 	if (joystickY == 1)
+			// 		btnNameField.innerText += '↓';
+			// 	if (joystickY == -1)
+			// 		btnNameField.innerText += '↑';
+			// }
+
+			if (joystickX == 1)
+				btnNameField.innerText = '→';
+			if (joystickX == -1)
+				btnNameField.innerText = '←';
+			if (joystickY == 1)
+				btnNameField.innerText = '↓';
+			if (joystickY == -1)
+				btnNameField.innerText = '↑';
+			if (joystickX == 1 && joystickY == 1)
+				btnNameField.innerText = '↘';
+			if (joystickX == 1 && joystickY == -1)
+				btnNameField.innerText = '↗';
+			if (joystickX == -1 && joystickY == 1)
+				btnNameField.innerText = '↙';
+			if (joystickX == -1 && joystickY == -1)
+				btnNameField.innerText = '↖';
+			// if (joystickX == 0 && joystickY == 0)
+			// 	btnNameField.innerText = '×';
+
+			// if (joystickZ >= 1 || joystickZ <= -1) {
+			// 	btnNameField.innerText = 'migical';
+			// }
+		}
+
+		start = window.requestAnimationFrame(gameLoop);
 	}
 
 	/**
@@ -234,4 +360,15 @@ typedef GamePadObject = {
 	var gamepad:Gamepad;
 	var alias:String;
 	var buttonMap:Map<Int, String>;
+}
+
+typedef SettingsObject = {
+	@:optional var _id:String;
+	@:optional var onSelect:Function;
+	@:optional var onSelectParams:Array<Dynamic>;
+	@:optional var onStart:Function;
+	@:optional var onStartParams:Array<Dynamic>;
+	@:optional var onStartOnce:Bool;
+	@:optional var onUpdate:Function;
+	@:optional var onUpdateParams:Array<Dynamic>;
 }

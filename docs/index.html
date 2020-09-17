@@ -14,15 +14,17 @@
 
 	<title>cc-gamepad | Matthijs Kamstra aka [mck]</title>
 
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.css">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+		integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+	<link href="https://cdn.jsdelivr.net/npm/ficons@1.1.52/dist/ficons/font.css" rel="stylesheet">
+
 	<link rel="stylesheet" href="css/style.css">
 
 	<style>
-		html,
-		body {
-			margin: 0;
-			padding: 0;
-		}
+		/* type */
+
 
 		.axes {
 			padding: 1em;
@@ -83,12 +85,40 @@
 			max-width: 900px;
 			width: 80%;
 		}
+
+		.controller {
+			font-size: 50px;
+			line-height: 1;
+
+
+		}
+
+		.controller pre {
+			margin-bottom: 0rem;
+			overflow: hidden;
+			overflow-y: auto;
+		}
+
+		.hidden {
+			display: none;
+		}
 	</style>
 
 
 </head>
 
 <body>
+
+	<i class="fa fa-gamepad fa-5x"></i>
+
+
+	<div class="container controller hidden">
+		<pre>↖↑↗
+←×→
+↙↓↘</pre>
+	</div>
+
+
 	<!-- Code generated using Haxe -->
 	<script type="text/javascript" src="cc_gamepad.js"></script>
 </body>

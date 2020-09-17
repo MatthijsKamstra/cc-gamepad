@@ -7,6 +7,26 @@
 # -lib msignal
 # -lib mloader
 # -lib uglifyjs
+# -cp src
+# -main Main
+# -js docs/cc_gamepad.js
+# -D source-map-content
+# -D state=debug
+# -debug
+# # -dce full
+# # -dce no
+
+
+# --next
+
+# -cp src
+# -main CCGamepad
+# -js docs/cc_gamepad.js
+# -D source-map-content
+# -D state=debug
+# -debug
+
+
 -cp src
 -main Main
 -js docs/cc_gamepad.js
@@ -15,13 +35,3 @@
 -debug
 # -dce full
 # -dce no
-
-
---next
-
--cp src
--main CCGamepad
--js docs/cc_gamepad.js
--D source-map-content
--D state=debug
--debug
