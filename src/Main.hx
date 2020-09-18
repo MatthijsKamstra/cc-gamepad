@@ -21,6 +21,7 @@ class Main {
 		gamePad.onLeftBottomOnce(onLeftBottomHandler); // specific type, just press once
 		gamePad.onRightBottomOnce(onRightBottomHandler); // specific type, just press once
 		gamePad.onButton(onButton); // all other button, just fire as much as possible
+		gamePad.onButtonOnce(CCGamepad.BUTTON_B, onButtonOnce); // all other button, just fire as much as possible
 		gamePad.onAxis(onAxis); // all other button, just fire as much as possible
 	}
 
@@ -30,6 +31,10 @@ class Main {
 
 	function onStartHandler(e) {
 		console.log('onStartHandler: ', e);
+	}
+
+	function onButtonOnce(e) {
+		console.log('>> onButtonOnce: ', e);
 	}
 
 	function onLeftBottomHandler(e) {

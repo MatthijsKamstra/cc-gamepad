@@ -28,6 +28,15 @@
 
 
 -cp src
+-main NavigationGamepad
+-js docs/cc_navigationgamepad.js
+-D source-map-content
+-D state=debug
+-debug
+
+--next
+
+-cp src
 -main Main
 -js docs/cc_gamepad.js
 -D source-map-content

@@ -6,33 +6,6 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
-var haxe_ds_StringMap = function() {
-	this.h = Object.create(null);
-};
-haxe_ds_StringMap.__name__ = true;
-haxe_ds_StringMap.prototype = {
-	__class__: haxe_ds_StringMap
-};
-var haxe_ds_IntMap = function() {
-	this.h = { };
-};
-haxe_ds_IntMap.__name__ = true;
-haxe_ds_IntMap.prototype = {
-	keys: function() {
-		var a = [];
-		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
-		return new haxe_iterators_ArrayIterator(a);
-	}
-	,iterator: function() {
-		return { ref : this.h, it : this.keys(), hasNext : function() {
-			return this.it.hasNext();
-		}, next : function() {
-			var i = this.it.next();
-			return this.ref[i];
-		}};
-	}
-	,__class__: haxe_ds_IntMap
-};
 var CCGamepad = function() {
 	this.previousButtonID = null;
 	this._options = { };
@@ -304,103 +277,71 @@ Action.prototype = {
 	}
 	,__class__: Action
 };
-var Main = function() {
+Math.__name__ = true;
+var NavigationGamepad = function() {
+	this.current = 0;
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " Setup :: build: " + "2020-09-18 22:47:30");
+		$global.console.log("" + model_constants_App.NAME + " NavigationGamepad :: build: " + "2020-09-18 22:47:30");
 		_gthis.init();
 	});
 };
-Main.__name__ = true;
-Main.main = function() {
-	var app = new Main();
+NavigationGamepad.__name__ = true;
+NavigationGamepad.main = function() {
+	var app = new NavigationGamepad();
 };
-Main.prototype = {
+NavigationGamepad.prototype = {
 	init: function() {
+		this.focusable = window.document.querySelectorAll("button, a[href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])");
+		$global.console.log(this.focusable);
 		var gamePad = new SNES();
 		gamePad.setup();
-		gamePad.onSelectOnce($bind(this,this.onSelectHandler));
 		gamePad.onStartOnce($bind(this,this.onStartHandler));
 		gamePad.onLeftBottomOnce($bind(this,this.onLeftBottomHandler));
 		gamePad.onRightBottomOnce($bind(this,this.onRightBottomHandler));
-		gamePad.onButton($bind(this,this.onButton));
-		gamePad.onButtonOnce(CCGamepad.BUTTON_B,$bind(this,this.onButtonOnce));
-		gamePad.onAxis($bind(this,this.onAxis));
+		gamePad.onButtonOnce(CCGamepad.BUTTON_B,$bind(this,this.onButtonB));
 	}
-	,onSelectHandler: function(e) {
+	,onButtonB: function(e) {
 		$global.console.log("onSelectHandler: ",e);
+		this.clickItem(this.current);
 	}
 	,onStartHandler: function(e) {
 		$global.console.log("onStartHandler: ",e);
-	}
-	,onButtonOnce: function(e) {
-		$global.console.log(">> onButtonOnce: ",e);
+		this.clickItem(this.current);
 	}
 	,onLeftBottomHandler: function(e) {
 		$global.console.log("onLeftBottomHandler: ",e);
+		this.prevItem(this.current);
 	}
 	,onRightBottomHandler: function(e) {
 		$global.console.log("onRightBottomHandler: ",e);
+		this.nextItem(this.current);
 	}
-	,onAxis: function(e) {
-		var _g = e.desc;
-		if(_g == null) {
-			console.log("src/Main.hx:71:","case '" + Std.string(e) + "': trace ('" + Std.string(e) + "');");
-		} else {
-			switch(_g) {
-			case CCGamepad.AXIS_CENTER_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_DOWN_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_DOWN_LEFT_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_DOWN_RIGHT_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_LEFT_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_RIGHT_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_UP_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_UP_LEFT_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			case CCGamepad.AXIS_UP_RIGHT_DISC:
-				$global.console.log("--> " + e.desc);
-				break;
-			default:
-				console.log("src/Main.hx:71:","case '" + Std.string(e) + "': trace ('" + Std.string(e) + "');");
-			}
+	,nextItem: function(index) {
+		++index;
+		this.current = index % this.focusable.length;
+		if(this.current >= this.focusable.length) {
+			this.current = 0;
+		}
+		(js_Boot.__cast(this.focusable[this.current] , HTMLElement)).focus();
+		$global.console.log((js_Boot.__cast(this.focusable[this.current] , HTMLElement)).textContent);
+	}
+	,prevItem: function(index) {
+		--index;
+		this.current = index % this.focusable.length;
+		if(this.current <= 0) {
+			this.current = this.focusable.length;
+		}
+		(js_Boot.__cast(this.focusable[this.current] , HTMLElement)).focus();
+		$global.console.log((js_Boot.__cast(this.focusable[this.current] , HTMLElement)).textContent);
+	}
+	,clickItem: function(index) {
+		if(js_Boot.__cast(this.focusable[index] , HTMLElement) != null) {
+			(js_Boot.__cast(this.focusable[index] , HTMLElement)).click();
 		}
 	}
-	,onButton: function(disc) {
-		switch(disc) {
-		case CCGamepad.BUTTON_A_DISC:
-			$global.console.log("--> " + disc);
-			break;
-		case CCGamepad.BUTTON_B_DISC:
-			$global.console.log("--> " + disc);
-			break;
-		case CCGamepad.BUTTON_X_DISC:
-			$global.console.log("--> " + disc);
-			break;
-		case CCGamepad.BUTTON_Y_DISC:
-			$global.console.log("--> " + disc);
-			break;
-		default:
-			console.log("src/Main.hx:87:","case '" + disc + "': trace ('" + disc + "');");
-		}
-	}
-	,__class__: Main
+	,__class__: NavigationGamepad
 };
-Math.__name__ = true;
 var SNES = function() {
 	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-18 22:47:30");
 	CCGamepad.call(this);
@@ -414,6 +355,71 @@ var Std = function() { };
 Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
+};
+var haxe_IMap = function() { };
+haxe_IMap.__name__ = true;
+haxe_IMap.__isInterface__ = true;
+var haxe_Exception = function(message,previous,native) {
+	Error.call(this,message);
+	this.message = message;
+	this.__previousException = previous;
+	this.__nativeException = native != null ? native : this;
+};
+haxe_Exception.__name__ = true;
+haxe_Exception.thrown = function(value) {
+	if(((value) instanceof haxe_Exception)) {
+		return value.get_native();
+	} else if(((value) instanceof Error)) {
+		return value;
+	} else {
+		var e = new haxe_ValueException(value);
+		return e;
+	}
+};
+haxe_Exception.__super__ = Error;
+haxe_Exception.prototype = $extend(Error.prototype,{
+	get_native: function() {
+		return this.__nativeException;
+	}
+	,__class__: haxe_Exception
+});
+var haxe_ValueException = function(value,previous,native) {
+	haxe_Exception.call(this,String(value),previous,native);
+	this.value = value;
+};
+haxe_ValueException.__name__ = true;
+haxe_ValueException.__super__ = haxe_Exception;
+haxe_ValueException.prototype = $extend(haxe_Exception.prototype,{
+	__class__: haxe_ValueException
+});
+var haxe_ds_IntMap = function() {
+	this.h = { };
+};
+haxe_ds_IntMap.__name__ = true;
+haxe_ds_IntMap.__interfaces__ = [haxe_IMap];
+haxe_ds_IntMap.prototype = {
+	keys: function() {
+		var a = [];
+		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
+		return new haxe_iterators_ArrayIterator(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i];
+		}};
+	}
+	,__class__: haxe_ds_IntMap
+};
+var haxe_ds_StringMap = function() {
+	this.h = Object.create(null);
+};
+haxe_ds_StringMap.__name__ = true;
+haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
+haxe_ds_StringMap.prototype = {
+	__class__: haxe_ds_StringMap
 };
 var haxe_iterators_ArrayIterator = function(array) {
 	this.current = 0;
@@ -431,6 +437,23 @@ haxe_iterators_ArrayIterator.prototype = {
 };
 var js_Boot = function() { };
 js_Boot.__name__ = true;
+js_Boot.getClass = function(o) {
+	if(o == null) {
+		return null;
+	} else if(((o) instanceof Array)) {
+		return Array;
+	} else {
+		var cl = o.__class__;
+		if(cl != null) {
+			return cl;
+		}
+		var name = js_Boot.__nativeClassName(o);
+		if(name != null) {
+			return js_Boot.__resolveNativeClass(name);
+		}
+		return null;
+	}
+};
 js_Boot.__string_rec = function(o,s) {
 	if(o == null) {
 		return "null";
@@ -495,6 +518,103 @@ js_Boot.__string_rec = function(o,s) {
 		return String(o);
 	}
 };
+js_Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) {
+		return false;
+	}
+	if(cc == cl) {
+		return true;
+	}
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g = 0;
+		var _g1 = intf.length;
+		while(_g < _g1) {
+			var i = _g++;
+			var i1 = intf[i];
+			if(i1 == cl || js_Boot.__interfLoop(i1,cl)) {
+				return true;
+			}
+		}
+	}
+	return js_Boot.__interfLoop(cc.__super__,cl);
+};
+js_Boot.__instanceof = function(o,cl) {
+	if(cl == null) {
+		return false;
+	}
+	switch(cl) {
+	case Array:
+		return ((o) instanceof Array);
+	case Bool:
+		return typeof(o) == "boolean";
+	case Dynamic:
+		return o != null;
+	case Float:
+		return typeof(o) == "number";
+	case Int:
+		if(typeof(o) == "number") {
+			return ((o | 0) === o);
+		} else {
+			return false;
+		}
+		break;
+	case String:
+		return typeof(o) == "string";
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(js_Boot.__downcastCheck(o,cl)) {
+					return true;
+				}
+			} else if(typeof(cl) == "object" && js_Boot.__isNativeObj(cl)) {
+				if(((o) instanceof cl)) {
+					return true;
+				}
+			}
+		} else {
+			return false;
+		}
+		if(cl == Class ? o.__name__ != null : false) {
+			return true;
+		}
+		if(cl == Enum ? o.__ename__ != null : false) {
+			return true;
+		}
+		return false;
+	}
+};
+js_Boot.__downcastCheck = function(o,cl) {
+	if(!((o) instanceof cl)) {
+		if(cl.__isInterface__) {
+			return js_Boot.__interfLoop(js_Boot.getClass(o),cl);
+		} else {
+			return false;
+		}
+	} else {
+		return true;
+	}
+};
+js_Boot.__cast = function(o,t) {
+	if(o == null || js_Boot.__instanceof(o,t)) {
+		return o;
+	} else {
+		throw haxe_Exception.thrown("Cannot cast " + Std.string(o) + " to " + Std.string(t));
+	}
+};
+js_Boot.__nativeClassName = function(o) {
+	var name = js_Boot.__toStr.call(o).slice(8,-1);
+	if(name == "Object" || name == "Function" || name == "Math" || name == "JSON") {
+		return null;
+	}
+	return name;
+};
+js_Boot.__isNativeObj = function(o) {
+	return js_Boot.__nativeClassName(o) != null;
+};
+js_Boot.__resolveNativeClass = function(name) {
+	return $global[name];
+};
 var model_constants_App = function() { };
 model_constants_App.__name__ = true;
 var $_;
@@ -503,6 +623,12 @@ $global.$haxeUID |= 0;
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
+var Int = { };
+var Dynamic = { };
+var Float = Number;
+var Bool = Boolean;
+var Class = { };
+var Enum = { };
 js_Boot.__toStr = ({ }).toString;
 CCGamepad.AXIS_RIGHT = "{x:1,y:0}";
 CCGamepad.AXIS_LEFT = "{x:-1,y:0}";
@@ -576,7 +702,7 @@ SNES.BUTTON_RIGHT_BOTTOM = 5;
 SNES.BUTTON_SELECT = 8;
 SNES.BUTTON_START = 9;
 model_constants_App.NAME = "[cc-gamepad]";
-Main.main();
+NavigationGamepad.main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
-//# sourceMappingURL=cc_gamepad.js.map
+//# sourceMappingURL=cc_navigationgamepad.js.map

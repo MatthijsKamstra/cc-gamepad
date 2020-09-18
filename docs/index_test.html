@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<link rel="icon" href="favicon.ico">
+	<!-- <link rel="icon" href="icon.jpg"> -->
+
+	<title>cc-gamepad | Matthijs Kamstra aka [mck]</title>
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+		integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+	<link href="https://cdn.jsdelivr.net/npm/ficons@1.1.52/dist/ficons/font.css" rel="stylesheet">
+
+	<link rel="stylesheet" href="css/style.css">
+	<style>
+		#gamepad-warning {
+			background-color: rgba(0, 0, 0, 0.3);
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow-x: hidden;
+			overflow-y: auto;
+			z-index: 99999999999;
+			position: fixed;
+			top: 0;
+			left: 0;
+		}
+
+		#gamepad-warning .wrapper {
+			background-color: white;
+			width: 300px;
+			text-align: center;
+			border: 1px solid rgba(0, 0, 0, .2);
+			border-radius: .3rem;
+			padding: 1rem 1rem;
+		}
+
+
+		a:focus {
+			background-color: black;
+			color: white;
+			border-radius: 2px;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<div class="container">
+
+
+		<body class="wrapper">
+			<nav class="main-navigation">
+				<h1 class="main-navigation__brand"><a href="#">Gamepad API</a></h1>
+				<ul class="main-navigation__items">
+					<li class="main-navigation__item"><a href="#">Home</a></li>
+					<li class="main-navigation__item"><a href="#">About</a></li>
+					<li class="main-navigation__item"><a href="#">Contact</a></li>
+				</ul>
+			</nav>
+			<article>
+				<header>
+					<h1>Gamepad navigation</h1>
+				</header>
+				<section>
+					<h2 class="subtitle">
+						Focusable items
+					</h2>
+				</section>
+				<section>
+					<p>
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean a <a href="#">tristique
+							ante</a>.
+						Interdum et malesuada fames ac ante ipsum primis in faucibus. Mauris quis lectus sit amet dolor
+						aliquet
+						tempus. Vivamus tempor odio in tempus congue. Suspendisse non imperdiet leo, non interdum velit.
+						<a href="#">Vestibulum</a> pretium urna id magna bibendum iaculis. Curabitur rhoncus, sapien
+						eget
+						tempor tincidunt, magna neque tempor elit, eget venenatis risus turpis vel leo. Donec porta nunc
+						eget
+						nisi porttitor, nec vulputate nunc vestibulum. Donec ac quam ut ligula dignissim elementum.
+					</p>
+					<p>
+						Quisque tempus bibendum eros eget efficitur. Proin placerat, purus at rhoncus sollicitudin,
+						felis
+						nulla
+						sagittis eros, in tincidunt nisi est vitae lectus. In pulvinar mi vitae justo venenatis
+						scelerisque.
+						Morbi feugiat et elit ac volutpat. Aenean pulvinar eget dolor vel sodales. Sed sit amet augue
+						sed
+						nisi
+						condimentum iaculis. Nulla vitae tempus risus. Nullam fermentum tempus ultrices. Integer at
+						felis
+						sollicitudin, convallis massa ac, ultricies mi. Cras feugiat purus quis <a href="#">cursus</a>
+						consequat. Praesent semper eros magna, at elementum mauris consequat elementum. Suspendisse eget
+						massa
+						vel nisl dictum tempor.
+					</p>
+					<a href="#">Pellentesque scelerisque</a> metus magna. Donec suscipit nisl faucibus congue sodales.
+					Sed
+					condimentum iaculis mattis. Maecenas non ligula sed tellus convallis lacinia. Praesent quis sapien
+					vel
+					dui
+					egestas tempor a sit amet lacus. Duis fringilla rhoncus magna, ac maximus urna dictum eget. Aenean
+					lectus
+					tellus, pellentesque vel fringilla sit amet, sollicitudin a felis. Quisque erat ex, volutpat at
+					suscipit
+					sit
+					amet, lobortis eu metus. <a href="#">Praesent</a> eu tincidunt massa. Interdum et malesuada fames ac
+					ante
+					ipsum primis in faucibus. Aliquam luctus velit est, ut scelerisque est euismod vitae. Nulla
+					facilisi.
+					Donec
+					scelerisque dignissim consequat. Vestibulum fringilla tortor eget ullamcorper faucibus. Integer nec
+					augue
+					est. Vestibulum ullamcorper, elit dapibus tempor facilisis, lorem orci ornare velit, vel interdum
+					neque
+					dui
+					ac nibh.
+					<p>
+						Sed in blandit est. Integer in congue sem. Sed ac faucibus massa. Nulla interdum ornare enim vel
+						cursus.
+						Quisque porta tellus non metus sollicitudin imperdiet. Aenean dictum quam mauris, eu posuere
+						nisi
+						efficitur vel. Donec varius non purus ac fringilla. Suspendisse nunc dui, eleifend ut iaculis
+						id,
+						interdum ut lectus. Integer nulla neque, scelerisque at odio quis, vestibulum commodo orci.
+						Phasellus eu
+						ornare dui, eu iaculis dolor. Proin velit metus, vulputate sit amet risus et, auctor maximus
+						enim.
+						Mauris eu libero in purus interdum suscipit. Lorem ipsum dolor sit amet, <a href="#">consectetur
+							adipiscing elit</a>.
+					</p>
+				</section>
+				<section>
+					<h2 class="subtitle">
+						Call to action
+					</h2>
+					<div class="button-group">
+						<button class="btn btn-success">Accept</button>
+						<button class="btn btn-warning">Decline</button>
+						<button class="btn btn-link">Save</button>
+					</div>
+				</section>
+				<section>
+					<h2 class="subtitle">
+						Open modal
+					</h2>
+
+					<!-- Button trigger modal -->
+					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+						Launch demo modal
+					</button>
+				</section>
+				<section>
+
+
+					<div id="_gamepad-warning">
+						<div class="wrapper">
+							<i class="fa fa-gamepad fa-5x"></i>
+							<h2>No gamepad detected</h2>
+							<p>If you have one, make sure it's plugged in/paired, and press buttons to wake it up.</p>
+						</div>
+					</div>
+				</section>
+
+
+
+			</article>
+
+
+			<!-- Modal -->
+			<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+				aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<h2 class="modal-title" id="exampleModalLabel"><i class="fa fa-gamepad"></i>No gamepad
+								detected </2>
+								If you have one, make sure it's plugged in / paired, and press buttons to wake it up.
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+							<button type="button" class="btn btn-primary">Save changes</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+
+
+			<!-- Optional JavaScript -->
+			<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+			<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+				integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+				crossorigin="anonymous"></script>
+			<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+				integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+				crossorigin="anonymous"></script>
+			<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+				integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+				crossorigin="anonymous"></script>
+
+
+			<!-- Code generated using Haxe -->
+			<script type="text/javascript" src="cc_navigationgamepad.js"></script>
+		</body>
+
+</html>

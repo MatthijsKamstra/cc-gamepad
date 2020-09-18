@@ -16,13 +16,10 @@ using StringTools;
 // https://github.com/luser/gamepadtest/blob/master/gamepadtest.js
 // checked in firefox and Chrome.. the rest I don't use
 class CCGamepad {
-	// var controllers:Array<Gamepad> = []; // {};
-	// var map:Map<Int, GamePadObject> = new Map();
-	var start:Dynamic;
-
-	// var gamePads:Array<Gamepad>;
-	// var gamepad:Gamepad; // 0
+	var btnMap:Map<Int, SpanElement> = [];
+	var axisMap:Map<Int, ProgressElement> = [];
 	var btnNameField:DivElement;
+	var start:Int; // requestAnimationFrame
 
 	private var _options:SettingsObject = cast {};
 
@@ -108,17 +105,24 @@ class CCGamepad {
 	// ____________________________________ public  ____________________________________
 
 	public function setup() {
-		trace(AXIS_MAP.get("{x:1,y:0}"));
+		// trace(AXIS_MAP.get("{x:1,y:0}"));
 
-		for (key in AXIS_MAP.keys()) {
-			trace(key, AXIS_MAP.get(key));
-		}
+		// for (key in AXIS_MAP.keys()) {
+		// 	trace(key, AXIS_MAP.get(key));
+		// }
 		init();
 	}
 
 	public function onButton(func:Function, ?arr:Array<Dynamic>) {
-		_options.onButton = func;
-		_options.onButtonParams = arr;
+		var action:Action = new Action(func, arr);
+		_options.onButton = action;
+	}
+
+	public function onButtonOnce(id:Int, func:Function, ?arr:Array<Dynamic>) {
+		// trace(BUTTON_MAP.get(id));
+		var action:Action = new Action(func, arr, true);
+		action.btnid(id);
+		_options.onButton = action;
 	}
 
 	public function onAxis(func:Function, ?arr:Array<Dynamic>) {
@@ -127,56 +131,56 @@ class CCGamepad {
 	}
 
 	public function onSelect(func:Function, ?arr:Array<Dynamic>) {
-		_options.onSelect = func;
-		_options.onSelectParams = arr;
-		_options.onSelectOnce = false;
+		var action:Action = new Action(func, arr);
+		_options.onSelect = action;
 	}
 
 	public function onSelectOnce(func:Function, ?arr:Array<Dynamic>) {
-		_options.onSelect = func;
-		_options.onSelectParams = arr;
-		_options.onSelectOnce = true;
+		var action:Action = new Action(func, arr, true);
+		_options.onSelect = action;
 	}
 
 	public function onLeftBottomOnce(func:Function, ?arr:Array<Dynamic>) {
-		_options.onLeftBottom = func;
-		_options.onLeftBottomParams = arr;
-		_options.onLeftBottomOnce = true;
+		var action:Action = new Action(func, arr, true);
+		_options.onLeftBottom = action;
 	}
 
 	public function onRightBottomOnce(func:Function, ?arr:Array<Dynamic>) {
-		_options.onRightBottom = func;
-		_options.onRightBottomParams = arr;
-		_options.onRightBottomOnce = true;
+		var action:Action = new Action(func, arr, true);
+		_options.onRightBottom = action;
 	}
 
 	public function onStart(func:Function, ?arr:Array<Dynamic>) {
-		_options.onStart = func;
-		_options.onStartParams = arr;
-		_options.onStartOnce = false;
+		var action:Action = new Action(func, arr);
+		_options.onStart = action;
 	}
 
 	public function onStartOnce(func:Function, ?arr:Array<Dynamic>) {
-		_options.onStart = func;
-		_options.onStartParams = arr;
-		_options.onStartOnce = true;
+		var action:Action = new Action(func, arr, true);
+		_options.onStart = action;
 	}
 
 	// ____________________________________ init ____________________________________
 
 	function init() {
-		setupStart();
+		setupWarning();
 		setupListeners();
 	}
 
 	// ____________________________________ setup ____________________________________
 
-	function setupStart() {
+	function setupWarning() {
+		var containerDiv = document.createDivElement();
+		containerDiv.id = 'gamepad-warning';
+		containerDiv.setAttribute('style',
+			"background-color: rgba(0, 0, 0, 0.3);width: 100vw;height: 100vh;display: flex;justify-content: center;align-items: center;overflow-x: hidden;overflow-y: auto;z-index: 99999999999;position: fixed;top: 0;left: 0;");
 		var div = document.createDivElement();
-		div.id = 'start-screen';
-		div.className = "container";
-		div.innerHTML = '<h2>No gamepad detected</h2><p>If you have one, make sure it\'s plugged in / paired, and press buttons to wake it up.</p>';
-		document.body.appendChild(div);
+		div.className = "wrapper";
+		div.setAttribute('style',
+			'background-color: white;width: 300px;text-align: center;border: 1px solid rgba(0, 0, 0, .2);border-radius: .3rem;padding: 1rem 1rem;');
+		div.innerHTML = '<i class="fa fa-gamepad fa-5x"></i><h2>No gamepad detected</h2><p>If you have one, make sure it\'s plugged in / paired, and press buttons to wake it up.</p>';
+		containerDiv.appendChild(div);
+		document.body.appendChild(containerDiv);
 	}
 
 	function setupListeners() {
@@ -188,13 +192,8 @@ class CCGamepad {
 		window.addEventListener("gamepadaxismove", onGamepadAxisMoveHandler);
 	}
 
-	var btnMap:Map<Int, SpanElement> = [];
-	var axisMap:Map<Int, ProgressElement> = [];
-
 	function setupInterface() {
 		var gamepad = navigator.getGamepads()[0];
-		var btnArray = gamepad.buttons;
-		var axixArray = gamepad.axes;
 
 		var d = document.createDivElement();
 		d.className = 'container';
@@ -243,9 +242,9 @@ class CCGamepad {
 
 		d.appendChild(pre);
 
-		var start = document.getElementById("start-screen");
-		if (start != null) {
-			start.style.display = "none";
+		var warningDiv = document.getElementById("gamepad-warning");
+		if (warningDiv != null) {
+			warningDiv.style.display = "none";
 		}
 
 		document.body.appendChild(d);
@@ -313,42 +312,61 @@ class CCGamepad {
 				btnNameField.innerText = BUTTON_MAP.get(i);
 				switch (i) {
 					case BUTTON_SELECT:
-						var _func = _options.onSelect;
-						var _arr = (_options.onSelectParams != null) ? _options.onSelectParams : [gamepad.timestamp];
-						if (_options.onSelectOnce == true && previousButtonID != i) {
-							Reflect.callMethod(_func, _func, _arr);
-						} else if (_options.onSelectOnce == false) {
-							Reflect.callMethod(_func, _func, _arr);
+						if (_options.onSelect != null) {
+							var _func = _options.onSelect.func;
+							var _arr = (_options.onSelect.arr != null) ? _options.onSelect.arr : [gamepad.timestamp];
+							if (_options.onSelect.isOnce == true && previousButtonID != i) {
+								Reflect.callMethod(_func, _func, _arr);
+							} else if (_options.onSelect.isOnce == false) {
+								Reflect.callMethod(_func, _func, _arr);
+							}
 						}
 					case BUTTON_START:
-						var _func = _options.onStart;
-						var _arr = (_options.onStartParams != null) ? _options.onStartParams : [gamepad.timestamp];
-						if (_options.onStartOnce == true && previousButtonID != i) {
-							Reflect.callMethod(_func, _func, _arr);
-						} else if (_options.onStartOnce == false) {
-							Reflect.callMethod(_func, _func, _arr);
+						if (_options.onStart != null) {
+							var _func = _options.onStart.func;
+							var _arr = (_options.onStart.arr != null) ? _options.onStart.arr : [gamepad.timestamp];
+							if (_options.onStart.isOnce == true && previousButtonID != i) {
+								Reflect.callMethod(_func, _func, _arr);
+							} else if (_options.onStart.isOnce == false) {
+								Reflect.callMethod(_func, _func, _arr);
+							}
 						}
 					case BUTTON_RIGHT_BOTTOM:
-						var _func = _options.onRightBottom;
-						var _arr = (_options.onRightBottomParams != null) ? _options.onRightBottomParams : [gamepad.timestamp];
-						if (_options.onRightBottomOnce == true && previousButtonID != i) {
-							Reflect.callMethod(_func, _func, _arr);
-						} else if (_options.onRightBottomOnce == false) {
-							Reflect.callMethod(_func, _func, _arr);
+						if (_options.onRightBottom != null) {
+							var _func = _options.onRightBottom.func;
+							var _arr = (_options.onRightBottom.arr != null) ? _options.onRightBottom.arr : [gamepad.timestamp];
+							if (_options.onRightBottom.isOnce == true && previousButtonID != i) {
+								Reflect.callMethod(_func, _func, _arr);
+							} else if (_options.onRightBottom.isOnce == false) {
+								Reflect.callMethod(_func, _func, _arr);
+							}
 						}
 					case BUTTON_LEFT_BOTTOM:
-						var _func = _options.onLeftBottom;
-						var _arr = (_options.onLeftBottomParams != null) ? _options.onLeftBottomParams : [gamepad.timestamp];
-						if (_options.onLeftBottomOnce == true && previousButtonID != i) {
-							Reflect.callMethod(_func, _func, _arr);
-						} else if (_options.onLeftBottomOnce == false) {
-							Reflect.callMethod(_func, _func, _arr);
+						if (_options.onLeftBottom != null) {
+							var _func = _options.onLeftBottom.func;
+							var _arr = (_options.onLeftBottom.arr != null) ? _options.onLeftBottom.arr : [gamepad.timestamp];
+							if (_options.onLeftBottom.isOnce == true && previousButtonID != i) {
+								Reflect.callMethod(_func, _func, _arr);
+							} else if (_options.onLeftBottom.isOnce == false) {
+								Reflect.callMethod(_func, _func, _arr);
+							}
 						}
 					default:
-						// trace("case '" + i + "': trace ('" + i + "');");
-						var _func = _options.onButton;
-						var _arr = (_options.onButtonParams != null) ? _options.onButtonParams : [BUTTON_MAP.get(i)];
-						Reflect.callMethod(_func, _func, _arr);
+						if (_options.onButton != null) {
+							var _func = _options.onButton.func;
+							var _arr = (_options.onButton.arr != null) ? _options.onButton.arr : [BUTTON_MAP.get(i)];
+
+							// console.log(_options.onButton.id == i);
+							// if (_options.onButton.isOnce == true && previousButtonID != i && _options.onButton.id == i) {
+							// 	Reflect.callMethod(_func, _func, _arr);
+							// } else if (_options.onButton.isOnce == false) {
+							// 	Reflect.callMethod(_func, _func, _arr);
+							// }
+
+							if (previousButtonID != i && _options.onButton.id == i) {
+								Reflect.callMethod(_func, _func, _arr);
+							}
+						}
 				}
 				previousButtonID = i;
 			}
@@ -407,10 +425,12 @@ class CCGamepad {
 			// if (joystickZ >= 1 || joystickZ <= -1) {
 			// 	btnNameField.innerText = 'migical';
 			// }
-			if (joystickX != 0 || joystickY != 0) {
-				var _func = _options.onAxis;
-				var _arr = (_options.onAxisParams != null) ? _options.onAxisParams : [joystickObj];
-				Reflect.callMethod(_func, _func, _arr);
+			if (_options.onAxis != null) {
+				if (joystickX != 0 || joystickY != 0) {
+					var _func = _options.onAxis;
+					var _arr = (_options.onAxisParams != null) ? _options.onAxisParams : [joystickObj];
+					Reflect.callMethod(_func, _func, _arr);
+				}
 			}
 		}
 
@@ -450,25 +470,36 @@ typedef JoystickObj = {
 typedef SettingsObject = {
 	@:optional var _id:String;
 	// select
-	@:optional var onSelect:Function;
-	@:optional var onSelectParams:Array<Dynamic>;
-	@:optional var onSelectOnce:Bool;
+	// @:optional var onSelect:Function;
+	// @:optional var onSelectParams:Array<Dynamic>;
+	// @:optional var onSelectOnce:Bool;
+	@:optional var onSelect:Action;
 	// start
-	@:optional var onStart:Function;
-	@:optional var onStartParams:Array<Dynamic>;
-	@:optional var onStartOnce:Bool;
+	@:optional var onStart:Action;
 	// left bottom
-	@:optional var onLeftBottom:Function;
-	@:optional var onLeftBottomParams:Array<Dynamic>;
-	@:optional var onLeftBottomOnce:Bool;
+	@:optional var onLeftBottom:Action;
 	// right bottom
-	@:optional var onRightBottom:Function;
-	@:optional var onRightBottomParams:Array<Dynamic>;
-	@:optional var onRightBottomOnce:Bool;
+	@:optional var onRightBottom:Action;
 	// buttons
-	@:optional var onButton:Function;
-	@:optional var onButtonParams:Array<Dynamic>;
+	@:optional var onButton:Action;
 	// Axis
 	@:optional var onAxis:Function;
 	@:optional var onAxisParams:Array<Dynamic>;
+}
+
+class Action {
+	public var func:Function;
+	public var arr:Array<Dynamic>;
+	public var id:Int;
+	public var isOnce:Bool = false; // default trigger often 60fps
+
+	public function new(func:Function, ?arr:Array<Dynamic>, ?isOnce = false) {
+		this.func = func;
+		this.arr = arr;
+		this.isOnce = isOnce;
+	}
+
+	public function btnid(id) {
+		this.id = id;
+	}
 }
