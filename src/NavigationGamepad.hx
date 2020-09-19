@@ -72,8 +72,8 @@ class NavigationGamepad {
 		index--;
 		current = index % focusable.length;
 
-		if (current <= 0)
-			current = focusable.length;
+		if (current < 0)
+			current = focusable.length - 1;
 
 		cast(focusable[current], Element).focus();
 		console.log(cast(focusable[current], Element).textContent);
