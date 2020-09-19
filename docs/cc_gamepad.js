@@ -40,7 +40,7 @@ var CCGamepad = function() {
 	this.btnMap = new haxe_ds_IntMap();
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " Dom ready :: build: " + "2020-09-18 22:47:30");
+		$global.console.log("" + model_constants_App.NAME + " Dom ready :: build: " + "2020-09-18 23:35:35");
 		_gthis.init();
 	});
 };
@@ -159,6 +159,9 @@ CCGamepad.prototype = {
 			warningDiv.style.display = "none";
 		}
 		window.document.body.appendChild(d);
+		$global.console.warn("TODO: remove this element better");
+		d.style.display = "none";
+		window.document.body.focus();
 	}
 	,onGamepadConnectedHandler: function(e) {
 		$global.console.log("Gamepad connected",e.gamepad);
@@ -307,7 +310,7 @@ Action.prototype = {
 var Main = function() {
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " Setup :: build: " + "2020-09-18 22:47:30");
+		$global.console.log("" + model_constants_App.NAME + " Setup :: build: " + "2020-09-18 23:35:35");
 		_gthis.init();
 	});
 };
@@ -402,7 +405,7 @@ Main.prototype = {
 };
 Math.__name__ = true;
 var SNES = function() {
-	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-18 22:47:30");
+	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-18 23:35:35");
 	CCGamepad.call(this);
 };
 SNES.__name__ = true;

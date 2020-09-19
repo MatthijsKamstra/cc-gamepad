@@ -13,7 +13,7 @@ var CCGamepad = function() {
 	this.btnMap = new haxe_ds_IntMap();
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " Dom ready :: build: " + "2020-09-18 22:47:30");
+		$global.console.log("" + model_constants_App.NAME + " Dom ready :: build: " + "2020-09-18 23:35:35");
 		_gthis.init();
 	});
 };
@@ -132,6 +132,9 @@ CCGamepad.prototype = {
 			warningDiv.style.display = "none";
 		}
 		window.document.body.appendChild(d);
+		$global.console.warn("TODO: remove this element better");
+		d.style.display = "none";
+		window.document.body.focus();
 	}
 	,onGamepadConnectedHandler: function(e) {
 		$global.console.log("Gamepad connected",e.gamepad);
@@ -282,7 +285,7 @@ var NavigationGamepad = function() {
 	this.current = 0;
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " NavigationGamepad :: build: " + "2020-09-18 22:47:30");
+		$global.console.log("" + model_constants_App.NAME + " NavigationGamepad :: build: " + "2020-09-18 23:35:35");
 		_gthis.init();
 	});
 };
@@ -329,8 +332,8 @@ NavigationGamepad.prototype = {
 	,prevItem: function(index) {
 		--index;
 		this.current = index % this.focusable.length;
-		if(this.current <= 0) {
-			this.current = this.focusable.length;
+		if(this.current < 0) {
+			this.current = this.focusable.length - 1;
 		}
 		(js_Boot.__cast(this.focusable[this.current] , HTMLElement)).focus();
 		$global.console.log((js_Boot.__cast(this.focusable[this.current] , HTMLElement)).textContent);
@@ -343,7 +346,7 @@ NavigationGamepad.prototype = {
 	,__class__: NavigationGamepad
 };
 var SNES = function() {
-	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-18 22:47:30");
+	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-18 23:35:35");
 	CCGamepad.call(this);
 };
 SNES.__name__ = true;
