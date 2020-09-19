@@ -32,7 +32,7 @@ haxelib dev cc-gamepad path/to/folder
 or use this git-repository directly
 
 ```
-haxelib git cc-sketch https://github.com/MatthijsKamstra/cc-gamepad.git
+haxelib git cc-gamepad https://github.com/MatthijsKamstra/cc-gamepad.git
 ```
 
 don't forget to add it to your build file
