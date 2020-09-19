@@ -21,6 +21,10 @@
 
 	<link rel="stylesheet" href="css/style.css">
 	<style>
+		html {
+			scroll-behavior: smooth;
+		}
+
 		#gamepad-warning {
 			background-color: rgba(0, 0, 0, 0.3);
 			width: 100vw;
@@ -51,16 +55,39 @@
 			color: white;
 			border-radius: 2px;
 		}
+
+		.footer {
+			background-color: silver;
+		}
+
+		a.card-focus {
+			/* border: 10px solid white; */
+			display: block;
+			filter: drop-shadow(0px 5px 4px rgba(0, 0, 0, 0.0));
+			transition: all 0.2s linear;
+			outline: none;
+			border-radius: .25rem;
+
+			border: 2px solid rgba(0, 0, 0, .125);
+		}
+
+		a.card-focus:focus {
+			/* border: 10px solid pink; */
+			filter: drop-shadow(0px 5px 4px rgba(0, 0, 0, 0.2));
+			color: black;
+			outline: none;
+
+			border: 2px solid rgba(0, 0, 0, 1);
+		}
 	</style>
 
 </head>
 
 <body>
 
-	<div class="container">
 
-
-		<body class="wrapper">
+	<main role="main" class="flex-shrink-0">
+		<div class="container">
 			<nav class="main-navigation">
 				<h1 class="main-navigation__brand"><a href="#">Gamepad API</a></h1>
 				<ul class="main-navigation__items">
@@ -79,7 +106,71 @@
 					</h2>
 				</section>
 				<section>
+					<div class="row">
+
+						<div class="col">
+							<a href="#" class="card-focus">
+								<div class="card">
+									<img src="https://picsum.photos/seed/picsum/200/100" class="card-img-top img-fluid"
+										alt="...">
+									<div class="card-body">
+										<p class="card-text">Card title</p>
+									</div>
+								</div>
+							</a>
+						</div>
+						<!-- .col -->
+
+						<div class="col">
+							<a href="#" class="card-focus">
+								<div class="card">
+									<img src="https://picsum.photos/seed/picsum/200/100" class="card-img-top img-fluid"
+										alt="...">
+									<div class="card-body">
+										<p class="card-text">Card title</p>
+									</div>
+								</div>
+							</a>
+						</div>
+						<!-- .col -->
+
+						<div class="col">
+							<a href="#" class="card-focus">
+								<div class="card">
+									<img src="https://picsum.photos/seed/picsum/200/100" class="card-img-top img-fluid"
+										alt="...">
+									<div class="card-body">
+										<p class="card-text">Card title</p>
+									</div>
+								</div>
+							</a>
+						</div>
+						<!-- .col -->
+
+						<div class="col">
+							<a href="#" class="card-focus">
+								<div class="card">
+									<img src="https://picsum.photos/seed/picsum/200/100" class="card-img-top img-fluid"
+										alt="...">
+									<div class="card-body">
+										<p class="card-text">Card title</p>
+									</div>
+								</div>
+							</a>
+						</div>
+						<!-- .col -->
+
+					</div>
+
+				</section>
+				<section>
+					<h2 class="subtitle">
+						Focusable items
+					</h2>
+				</section>
+				<section>
 					<p>
+						<a href="#call-to-action">call-to-action</a>
 						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean a <a href="#">tristique
 							ante</a>.
 						Interdum et malesuada fames ac ante ipsum primis in faucibus. Mauris quis lectus sit amet dolor
@@ -143,6 +234,8 @@
 							adipiscing elit</a>.
 					</p>
 				</section>
+
+				<a name="call-to-action"></a>
 				<section>
 					<h2 class="subtitle">
 						Call to action
@@ -163,17 +256,7 @@
 						Launch demo modal
 					</button>
 				</section>
-				<section>
 
-
-					<div id="_gamepad-warning">
-						<div class="wrapper">
-							<i class="fa fa-gamepad fa-5x"></i>
-							<h2>No gamepad detected</h2>
-							<p>If you have one, make sure it's plugged in/paired, and press buttons to wake it up.</p>
-						</div>
-					</div>
-				</section>
 
 
 
@@ -195,32 +278,37 @@
 								detected </2>
 								If you have one, make sure it's plugged in / paired, and press buttons to wake it up.
 						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-							<button type="button" class="btn btn-primary">Save changes</button>
-						</div>
 					</div>
 				</div>
 			</div>
+		</div>
+	</main>
 
 
+	<footer class="footer mt-auto py-3">
+		<div class="container">
+			<span class="text-muted">Place sticky footer content here.</span>
+		</div>
+	</footer>
+
+	<!-- Optional JavaScript -->
+	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+		integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+		crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+		integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+		crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+		integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+		crossorigin="anonymous"></script>
 
 
-			<!-- Optional JavaScript -->
-			<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-			<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-				integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-				crossorigin="anonymous"></script>
-			<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-				integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-				crossorigin="anonymous"></script>
-			<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-				integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-				crossorigin="anonymous"></script>
+	<!-- Code generated using Haxe -->
+	<script type="text/javascript" src="cc_navigationgamepad.js"></script>
+
+</body>
 
 
-			<!-- Code generated using Haxe -->
-			<script type="text/javascript" src="cc_navigationgamepad.js"></script>
-		</body>
 
 </html>
