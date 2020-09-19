@@ -248,6 +248,12 @@ class CCGamepad {
 		}
 
 		document.body.appendChild(d);
+
+		console.warn('TODO: remove this element better');
+		d.style.display = "none";
+
+		// force the focus on the body
+		document.body.focus();
 	}
 
 	// ____________________________________ handlers ____________________________________
@@ -255,7 +261,6 @@ class CCGamepad {
 		// Gamepad connected
 		console.log("Gamepad connected", e.gamepad);
 
-		// setupControllerValues();
 		setupInterface();
 
 		gameLoop();
