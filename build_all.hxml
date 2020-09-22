@@ -12,6 +12,7 @@
 #-cmd echo '> build target js (build_js.hxml)'
 #-cmd haxe build_js.hxml
 
+
 # Create a release and/or debug build
 #-cmd echo '> build target js (build_release.hxml)'
 #-cmd haxe build_release.hxml --no-traces

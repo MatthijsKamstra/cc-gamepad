@@ -12,7 +12,7 @@ Project info:
 - project target : js
 - project license : MIT
 - project author : Matthijs Kamstra aka [mck]
-- project website :
+- project website : x
 
 <a href="haxe"></a>
 
