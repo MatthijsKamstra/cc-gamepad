@@ -19,6 +19,33 @@ Not sure anyone besides me should use this.
 
 But you can, if you really feel the need
 
+## usage
+
+```haxe
+var gamePad = new SNES();
+gamePad.setup(true); // show visualizer
+// gamePad.onSelect(onSelectHandler); // press Select, get triggerted 60 fps
+gamePad.onSelectOnce(onSelectHandler); // press Select, get triggerte once
+// gamePad.onStart(onStartHandler);
+gamePad.onStartOnce(onStartHandler);
+
+// gamePad.onLeftBottom(onLeftBottomHandler); // fires 60 fps
+gamePad.onLeftBottom(onLeftBottomHandler, true); // only fires once
+gamePad.onRightBottomOnce(onRightBottomHandler); // syntatic sugar
+
+gamePad.onButton(CCGamepad.BUTTON_B, onButton);
+gamePad.onButtonOnce(CCGamepad.BUTTON_A, onButtonOnce); // all other button, just fire as much as possible
+
+gamePad.onAxis(onAxis);
+
+
+// handlers
+function onSelectHandler(e:CCGamepad.Action) {
+  console.log('onSelectHandler: ', e);
+}
+
+```
+
 ## Haxelib
 
 How to install cc-gamepad
