@@ -11,11 +11,7 @@ class SNES extends CCGamepad {
 	public static final BUTTON_START = 9;
 
 	public function new() {
-		console.log('${model.constants.App.NAME} SNES :: build: ${model.constants.App.getBuildDate()}');
+		console.log('${App.NAME} SNES :: build: ${App.getBuildDate()}');
 		super();
 	}
-
-	// static public function main() {
-	// 	var app = new SNES();
-	// }
 }

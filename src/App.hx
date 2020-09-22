@@ -1,4 +1,4 @@
-package model.constants;
+package;
 
 import haxe.macro.Context;
 

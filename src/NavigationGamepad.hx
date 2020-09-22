@@ -12,7 +12,7 @@ class NavigationGamepad {
 
 	public function new() {
 		document.addEventListener("DOMContentLoaded", function(event) {
-			console.log('${model.constants.App.NAME} NavigationGamepad :: build: ${model.constants.App.getBuildDate()}');
+			console.log('${App.NAME} NavigationGamepad :: build: ${App.getBuildDate()}');
 			init();
 		});
 	}
@@ -26,10 +26,10 @@ class NavigationGamepad {
 		gamePad.setup();
 		// gamePad.onSelectOnce(onSelectHandler); // specific type, just press once
 		gamePad.onStartOnce(onStartHandler); // specific type, just press once
-		gamePad.onLeftBottomOnce(onLeftBottomHandler); // specific type, just press once
-		gamePad.onRightBottomOnce(onRightBottomHandler); // specific type, just press once
-		// gamePad.onButton(onButton); // all other button, just fire as much as possible
-		gamePad.onButtonOnce(CCGamepad.BUTTON_B, onButtonB); // all other button, just fire as much as possible
+		// gamePad.onLeftBottomOnce(onLeftBottomHandler); // specific type, just press once
+		// gamePad.onRightBottomOnce(onRightBottomHandler); // specific type, just press once
+		// // gamePad.onButton(onButton); // all other button, just fire as much as possible
+		// gamePad.onButtonOnce(CCGamepad.BUTTON_B, onButtonB); // all other button, just fire as much as possible
 		// gamePad.onAxis(onAxis); // all other button, just fire as much as possible
 	}
 

@@ -16,14 +16,27 @@ using StringTools;
 // https://github.com/luser/gamepadtest/blob/master/gamepadtest.js
 // checked in firefox and Chrome.. the rest I don't use
 class CCGamepad {
+	var isWarning:Bool = true; // warning before use
+	var isVisualizer:Bool = false; // visualize the buttons (usefull to map the values of the controller)
+
+	// pad (up/down/left/right) -> probably always needed!
+	var onAxisFunc:Function;
+	// other buttons, must be set individually
+	var buttonActionArray:Array<Action> = [];
+
+	// for visuals
 	var btnMap:Map<Int, SpanElement> = [];
 	var axisMap:Map<Int, ProgressElement> = [];
 	var btnNameField:DivElement;
-	var start:Int; // requestAnimationFrame
 
-	private var _options:SettingsObject = cast {};
+	// kill animation frame
+	var requestID:Int; // requestAnimationFrame
+	// remember previous button
+	var previousButtonID:Int = null;
 
+	// private var _options:SettingsObject = cast {};
 	// axis x-dir and y-dir
+	// [mck] this is probably a very bad idea...
 	public static final AXIS_RIGHT = "{x:1,y:0}";
 	public static final AXIS_LEFT = "{x:-1,y:0}";
 	public static final AXIS_DOWN = "{x:0,y:1}";
@@ -33,15 +46,6 @@ class CCGamepad {
 	public static final AXIS_UP_RIGHT = "{x:1,y:-1}";
 	public static final AXIS_UP_LEFT = "{x:-1,y:-1}";
 	public static final AXIS_CENTER = "{x:0,y:0}";
-	// public static final AXIS_RIGHT = {x: 1.0, y: 0.0};
-	// public static final AXIS_LEFT = {x: -1.0, y: 0.0};
-	// public static final AXIS_DOWN = {x: 0.0, y: 1.0};
-	// public static final AXIS_UP = {x: 0.0, y: -1.0};
-	// public static final AXIS_DOWN_RIGHT = {x: 1.0, y: 1.0};
-	// public static final AXIS_DOWN_LEFT = {x: -1.0, y: 1.0};
-	// public static final AXIS_UP_RIGHT = {x: 1.0, y: -1.0};
-	// public static final AXIS_UP_LEFT = {x: -1.0, y: -1.0};
-	// public static final AXIS_CENTER = {x: 0.0, y: 0.0};
 	// axis description
 	public static final AXIS_RIGHT_DISC = '→';
 	public static final AXIS_LEFT_DISC = '←';
@@ -95,75 +99,123 @@ class CCGamepad {
 	];
 
 	public function new() {
-		// trace('START :: CCGamepad');
 		document.addEventListener("DOMContentLoaded", function(event) {
-			console.log('${model.constants.App.NAME} Dom ready :: build: ${model.constants.App.getBuildDate()}');
+			console.log('${App.NAME} Dom ready :: build: ${App.getBuildDate()}');
 			init();
 		});
 	}
 
 	// ____________________________________ public  ____________________________________
 
-	public function setup() {
-		// trace(AXIS_MAP.get("{x:1,y:0}"));
-
-		// for (key in AXIS_MAP.keys()) {
-		// 	trace(key, AXIS_MAP.get(key));
-		// }
+	/**
+	 * setup Gamepad,
+	 * @param isVisualizer  	use a controller visualizer to (default: false)
+	 * @param isWarning			use a warning before activating (default: true)
+	 */
+	public function setup(?isVisualizer:Bool = false, ?isWarning:Bool = true) {
+		this.isVisualizer = isVisualizer;
+		this.isWarning = isWarning;
 		init();
 	}
 
-	public function onButton(func:Function, ?arr:Array<Dynamic>) {
-		var action:Action = new Action(func, arr);
-		_options.onButton = action;
+	// ____________________________________ buttons ____________________________________
+
+	/**
+	 * [Description]
+	 * @param buttonID
+	 * @param func
+	 * @param isTriggeredOnce
+	 */
+	public function onButton(buttonID:Int, func:Function, ?isTriggeredOnce:Bool = false) {
+		var action:Action = new Action(func, isTriggeredOnce);
+		action.id = buttonID;
+		action.description = BUTTON_MAP.get(buttonID);
+		buttonActionArray.push(action);
 	}
 
-	public function onButtonOnce(id:Int, func:Function, ?arr:Array<Dynamic>) {
-		// trace(BUTTON_MAP.get(id));
-		var action:Action = new Action(func, arr, true);
-		action.btnid(id);
-		_options.onButton = action;
+	// syntatic sugar for the previous function
+	public function onButtonOnce(buttonID:Int, func:Function) {
+		onButton(buttonID, func, true);
 	}
 
-	public function onAxis(func:Function, ?arr:Array<Dynamic>) {
-		_options.onAxis = func;
-		_options.onAxisParams = arr;
+	// ____________________________________ specific buttons ____________________________________
+
+	/**
+	 * Press select button
+	 * @param func 				onActivated trigger function
+	 * @param isTriggeredOnce 	(default: false) want to call it every fps or just once
+	 */
+	public function onSelect(func:Function, ?isTriggeredOnce:Bool = false) {
+		var action:Action = new Action(func, isTriggeredOnce);
+		action.id = BUTTON_SELECT;
+		buttonActionArray.push(action);
 	}
 
-	public function onSelect(func:Function, ?arr:Array<Dynamic>) {
-		var action:Action = new Action(func, arr);
-		_options.onSelect = action;
+	// syntatic sugar for the previous function
+	public function onSelectOnce(func:Function) {
+		onSelect(func, true);
 	}
 
-	public function onSelectOnce(func:Function, ?arr:Array<Dynamic>) {
-		var action:Action = new Action(func, arr, true);
-		_options.onSelect = action;
+	/**
+	 * Press start button
+	 * @param func 				onActivated trigger function
+	 * @param isTriggeredOnce 	(default: false) want to call it every fps or just once
+	 */
+	public function onStart(func:Function, ?isTriggeredOnce:Bool = false) {
+		var action:Action = new Action(func, isTriggeredOnce);
+		action.id = BUTTON_START;
+		buttonActionArray.push(action);
 	}
 
-	public function onLeftBottomOnce(func:Function, ?arr:Array<Dynamic>) {
-		var action:Action = new Action(func, arr, true);
-		_options.onLeftBottom = action;
+	// syntatic sugar for the previous function
+	public function onStartOnce(func:Function) {
+		onStart(func, true);
 	}
 
-	public function onRightBottomOnce(func:Function, ?arr:Array<Dynamic>) {
-		var action:Action = new Action(func, arr, true);
-		_options.onRightBottom = action;
+	/**
+	 * Press select button
+	 * @param func 				onActivated trigger function
+	 * @param isTriggeredOnce 	(default: false) want to call it every fps or just once
+	 */
+	public function onLeftBottom(func:Function, ?isTriggeredOnce:Bool = false) {
+		var action:Action = new Action(func, isTriggeredOnce);
+		action.id = BUTTON_LEFT_BOTTOM;
+		buttonActionArray.push(action);
 	}
 
-	public function onStart(func:Function, ?arr:Array<Dynamic>) {
-		var action:Action = new Action(func, arr);
-		_options.onStart = action;
+	// syntatic sugar for the previous function
+	public function onLeftBottomOnce(func:Function) {
+		onLeftBottom(func, true);
 	}
 
-	public function onStartOnce(func:Function, ?arr:Array<Dynamic>) {
-		var action:Action = new Action(func, arr, true);
-		_options.onStart = action;
+	/**
+	 * Press select button
+	 * @param func 				onActivated trigger function
+	 * @param isTriggeredOnce 	(default: false) want to call it every fps or just once
+	 */
+	public function onRightBottom(func:Function, ?isTriggeredOnce:Bool = false) {
+		var action:Action = new Action(func, isTriggeredOnce);
+		action.id = BUTTON_RIGHT_BOTTOM;
+		buttonActionArray.push(action);
+	}
+
+	// syntatic sugar for the previous function
+	public function onRightBottomOnce(func:Function) {
+		onRightBottom(func, true);
+	}
+
+	// ____________________________________ axis ____________________________________
+
+	public function onAxis(func:Function) {
+		onAxisFunc = func;
 	}
 
 	// ____________________________________ init ____________________________________
 
 	function init() {
-		setupWarning();
+		if (this.isWarning)
+			setupWarning();
+
 		setupListeners();
 	}
 
@@ -242,39 +294,47 @@ class CCGamepad {
 
 		d.appendChild(pre);
 
+		document.body.appendChild(d);
+
+		var heart = document.createSpanElement();
+		heart.id = 'heart';
+		heart.textContent = '❤';
+		var w = document.body.clientWidth;
+		var h = document.body.clientHeight;
+		heart.setAttribute('style', 'display: block;position: absolute;top: ${h / 2}px;left: ${w / 2}px;');
+		document.body.appendChild(heart);
+
+		// console.warn('TODO: remove this element better (click example)');
+		// d.style.display = "none";
+	}
+
+	// ____________________________________ gamepad handlers ____________________________________
+
+	function onGamepadConnectedHandler(e:GamepadEvent) {
+		// Gamepad connected
+		console.log("Gamepad connected", e.gamepad);
+
+		// show visualizer
+		if (this.isVisualizer)
+			setupInterface();
+
+		// hide warning if needed
 		var warningDiv = document.getElementById("gamepad-warning");
 		if (warningDiv != null) {
 			warningDiv.style.display = "none";
 		}
 
-		document.body.appendChild(d);
-
-		console.warn('TODO: remove this element better');
-		d.style.display = "none";
-
 		// force the focus on the body
 		document.body.focus();
-	}
 
-	// ____________________________________ handlers ____________________________________
-	function onGamepadConnectedHandler(e:GamepadEvent) {
-		// Gamepad connected
-		console.log("Gamepad connected", e.gamepad);
-
-		setupInterface();
-
+		// start game loop
 		gameLoop();
-		// timeoutVariable = window.setInterval(gameLoop, 500);
 	}
-
-	// var timeoutVariable:Int;
 
 	function onGamepadDisconnectedHandler(e:GamepadEvent) {
 		// Gamepad disconnected
 		console.log("Gamepad disconnected", e.gamepad);
-		// removegamepad(e.gamepad);
-		window.cancelAnimationFrame(start);
-		// window.clearTimeout(timeoutVariable);
+		window.cancelAnimationFrame(requestID);
 	}
 
 	function onGamepadButtonDownHandler(e) {
@@ -293,153 +353,87 @@ class CCGamepad {
 	}
 
 	// ____________________________________ gameLoop____________________________________
-	var previousButtonID:Int = null;
 
 	function gameLoop(?value) {
 		var gamepad = navigator.getGamepads()[0];
-		for (el in btnMap) {
-			el.classList.remove('pressed');
+
+		if (isVisualizer) {
+			for (el in btnMap) {
+				el.classList.remove('pressed');
+			}
 		}
 
 		// reset previous value if button is released
 		if (previousButtonID != null && !gamepad.buttons[previousButtonID].pressed) {
+			// [mck] also buttonUp actions
 			previousButtonID = null;
 		}
 
 		for (i in 0...gamepad.buttons.length) {
 			var currentButton:GamepadButton = gamepad.buttons[i];
-			// console.log(currentButton);
 
 			if (currentButton.pressed) {
-				var el = btnMap.get(i);
-				el.classList.add('pressed');
-				// show "description" of button
-				btnNameField.innerText = BUTTON_MAP.get(i);
-				switch (i) {
-					case BUTTON_SELECT:
-						if (_options.onSelect != null) {
-							var _func = _options.onSelect.func;
-							var _arr = (_options.onSelect.arr != null) ? _options.onSelect.arr : [gamepad.timestamp];
-							if (_options.onSelect.isOnce == true && previousButtonID != i) {
-								Reflect.callMethod(_func, _func, _arr);
-							} else if (_options.onSelect.isOnce == false) {
-								Reflect.callMethod(_func, _func, _arr);
-							}
-						}
-					case BUTTON_START:
-						if (_options.onStart != null) {
-							var _func = _options.onStart.func;
-							var _arr = (_options.onStart.arr != null) ? _options.onStart.arr : [gamepad.timestamp];
-							if (_options.onStart.isOnce == true && previousButtonID != i) {
-								Reflect.callMethod(_func, _func, _arr);
-							} else if (_options.onStart.isOnce == false) {
-								Reflect.callMethod(_func, _func, _arr);
-							}
-						}
-					case BUTTON_RIGHT_BOTTOM:
-						if (_options.onRightBottom != null) {
-							var _func = _options.onRightBottom.func;
-							var _arr = (_options.onRightBottom.arr != null) ? _options.onRightBottom.arr : [gamepad.timestamp];
-							if (_options.onRightBottom.isOnce == true && previousButtonID != i) {
-								Reflect.callMethod(_func, _func, _arr);
-							} else if (_options.onRightBottom.isOnce == false) {
-								Reflect.callMethod(_func, _func, _arr);
-							}
-						}
-					case BUTTON_LEFT_BOTTOM:
-						if (_options.onLeftBottom != null) {
-							var _func = _options.onLeftBottom.func;
-							var _arr = (_options.onLeftBottom.arr != null) ? _options.onLeftBottom.arr : [gamepad.timestamp];
-							if (_options.onLeftBottom.isOnce == true && previousButtonID != i) {
-								Reflect.callMethod(_func, _func, _arr);
-							} else if (_options.onLeftBottom.isOnce == false) {
-								Reflect.callMethod(_func, _func, _arr);
-							}
-						}
-					default:
-						if (_options.onButton != null) {
-							var _func = _options.onButton.func;
-							var _arr = (_options.onButton.arr != null) ? _options.onButton.arr : [BUTTON_MAP.get(i)];
-
-							// console.log(_options.onButton.id == i);
-							// if (_options.onButton.isOnce == true && previousButtonID != i && _options.onButton.id == i) {
-							// 	Reflect.callMethod(_func, _func, _arr);
-							// } else if (_options.onButton.isOnce == false) {
-							// 	Reflect.callMethod(_func, _func, _arr);
-							// }
-
-							if (previousButtonID != i && _options.onButton.id == i) {
-								Reflect.callMethod(_func, _func, _arr);
-							}
-						}
+				// update visualizer
+				if (isVisualizer) {
+					var el = btnMap.get(i);
+					el.classList.add('pressed');
+					// show "description" of button
+					btnNameField.innerText = BUTTON_MAP.get(i);
 				}
+
+				for (j in 0...buttonActionArray.length) {
+					var _action = buttonActionArray[j];
+					if (_action.id == i) {
+						_action.gamepadButton = currentButton;
+						_action.timestamp = Date.now().getTime();
+						if (_action.isOnce == true && previousButtonID != i) {
+							Reflect.callMethod(_action.func, _action.func, [_action]);
+						} else if (_action.isOnce == false) {
+							Reflect.callMethod(_action.func, _action.func, [_action]);
+						}
+					}
+				}
+
 				previousButtonID = i;
 			}
 		}
 
-		var axes = document.getElementsByClassName("axis");
 		for (i in 0...gamepad.axes.length) {
-			var a = axes[i];
-			// a.innerHTML = i + ": " + Syntax.code("(controller.axes[i]).toFixed(4)");
-			a.innerHTML = i + ": " + gamepad.axes[i];
-			a.setAttribute("value", Std.string(gamepad.axes[i] + 1));
-
-			// console.log(gamepad.axes[i]);
 			var joystickX = applyDeadzone(gamepad.axes[gamepad.axes.length - 2], 0.25);
 			var joystickY = applyDeadzone(gamepad.axes[gamepad.axes.length - 1], 0.25);
-
 			var joystickStr = '{x:${joystickX},y:${joystickY}}';
 			var joystickObj:JoystickObj = {
 				x: joystickX,
 				y: joystickY,
 				desc: AXIS_MAP.get(joystickStr)
 			}
+			if (isVisualizer) {
+				var axes = document.getElementsByClassName("axis");
+				var a = axes[i];
+				// a.innerHTML = i + ": " + Syntax.code("(controller.axes[i]).toFixed(4)");
+				a.innerHTML = i + ": " + gamepad.axes[i];
+				a.setAttribute("value", Std.string(gamepad.axes[i] + 1));
+				// console.log(gamepad.axes[i]);
+				if (joystickX == 0 && joystickY == 0) {
+					// what? don't use the joystick
+				} else {
+					btnNameField.innerText = AXIS_MAP.get(joystickStr);
+				}
 
-			// trace(joystickObj);
-			// trace(joystickStr);
-			// trace(AXIS_MAP.get(joystickStr));
-
-			if (joystickX == 0 && joystickY == 0) {
-				// what? don't use the joystick
-			} else {
-				btnNameField.innerText = AXIS_MAP.get(joystickStr);
+				var heart = document.getElementById('heart');
+				heart.style.left = (Std.parseInt(heart.style.left) + joystickX) + 'px';
+				heart.style.top = (Std.parseInt(heart.style.top) + joystickY) + 'px';
 			}
 
-			// if (joystickX == 1)
-
-			// 	btnNameField.innerText = '→';
-			// if (joystickX == -1)
-			// 	btnNameField.innerText = '←';
-			// if (joystickY == 1)
-			// 	btnNameField.innerText = '↓';
-			// if (joystickY == -1)
-			// 	btnNameField.innerText = '↑';
-			// if (joystickX == 1 && joystickY == 1)
-			// 	btnNameField.innerText = '↘';
-			// if (joystickX == 1 && joystickY == -1)
-			// 	btnNameField.innerText = '↗';
-			// if (joystickX == -1 && joystickY == 1)
-			// 	btnNameField.innerText = '↙';
-			// if (joystickX == -1 && joystickY == -1)
-			// 	btnNameField.innerText = '↖';
-			// // if (joystickX == 0 && joystickY == 0)
-			// 	btnNameField.innerText = '×';
-
-			// trace('public static final AXIS_OBJ = ${btnNameField.innerText}; // ${joystickObj}');
-
-			// if (joystickZ >= 1 || joystickZ <= -1) {
-			// 	btnNameField.innerText = 'migical';
-			// }
-			if (_options.onAxis != null) {
+			if (onAxisFunc != null) {
 				if (joystickX != 0 || joystickY != 0) {
-					var _func = _options.onAxis;
-					var _arr = (_options.onAxisParams != null) ? _options.onAxisParams : [joystickObj];
+					var _func = onAxisFunc;
+					var _arr = [joystickObj];
 					Reflect.callMethod(_func, _func, _arr);
 				}
 			}
 		}
-
-		start = window.requestAnimationFrame(gameLoop);
+		requestID = window.requestAnimationFrame(gameLoop);
 	}
 
 	/**
@@ -459,52 +453,60 @@ class CCGamepad {
 	}
 }
 
-typedef GamePadObject = {
-	@:optional var _id:String;
-	var gamepad:Gamepad;
-	var alias:String;
-	var buttonMap:Map<Int, String>;
-}
-
 typedef JoystickObj = {
 	@:optional var desc:String;
 	var x:Float;
 	var y:Float;
 }
 
-typedef SettingsObject = {
-	@:optional var _id:String;
-	// select
-	// @:optional var onSelect:Function;
-	// @:optional var onSelectParams:Array<Dynamic>;
-	// @:optional var onSelectOnce:Bool;
-	@:optional var onSelect:Action;
-	// start
-	@:optional var onStart:Action;
-	// left bottom
-	@:optional var onLeftBottom:Action;
-	// right bottom
-	@:optional var onRightBottom:Action;
-	// buttons
-	@:optional var onButton:Action;
-	// Axis
-	@:optional var onAxis:Function;
-	@:optional var onAxisParams:Array<Dynamic>;
-}
-
 class Action {
+	// nummerical value of the button
+	@:isVar public var id(get, set):Int;
+	// only used when buttons
+	@:isVar public var gamepadButton(get, set):GamepadButton;
+	// timestamp
+	@:isVar public var timestamp(get, set):Float;
+	// description (currently only set by button)
+	@:isVar public var description(get, set):String;
+
 	public var func:Function;
-	public var arr:Array<Dynamic>;
-	public var id:Int;
 	public var isOnce:Bool = false; // default trigger often 60fps
 
-	public function new(func:Function, ?arr:Array<Dynamic>, ?isOnce = false) {
+	public function new(func:Function, ?isOnce = false) {
 		this.func = func;
-		this.arr = arr;
 		this.isOnce = isOnce;
 	}
 
-	public function btnid(id) {
-		this.id = id;
+	// ____________________________________ getter/setter ____________________________________
+	function get_id():Int {
+		return id;
+	}
+
+	function set_id(value:Int):Int {
+		return id = value;
+	}
+
+	function get_gamepadButton():GamepadButton {
+		return gamepadButton;
+	}
+
+	function set_gamepadButton(value:GamepadButton):GamepadButton {
+		return gamepadButton = value;
+	}
+
+	function get_timestamp():Float {
+		return timestamp;
+	}
+
+	function set_timestamp(value:Float):Float {
+		return timestamp = value;
+	}
+
+	function get_description():String {
+		return description;
+	}
+
+	function set_description(value:String):String {
+		return description = value;
 	}
 }
