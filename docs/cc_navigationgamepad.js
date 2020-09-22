@@ -6,14 +6,50 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
+var App = function() { };
+App.__name__ = true;
+var haxe_IMap = function() { };
+haxe_IMap.__name__ = true;
+haxe_IMap.__isInterface__ = true;
+var haxe_ds_StringMap = function() {
+	this.h = Object.create(null);
+};
+haxe_ds_StringMap.__name__ = true;
+haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
+haxe_ds_StringMap.prototype = {
+	__class__: haxe_ds_StringMap
+};
+var haxe_ds_IntMap = function() {
+	this.h = { };
+};
+haxe_ds_IntMap.__name__ = true;
+haxe_ds_IntMap.__interfaces__ = [haxe_IMap];
+haxe_ds_IntMap.prototype = {
+	keys: function() {
+		var a = [];
+		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
+		return new haxe_iterators_ArrayIterator(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i];
+		}};
+	}
+	,__class__: haxe_ds_IntMap
+};
 var CCGamepad = function() {
 	this.previousButtonID = null;
-	this._options = { };
 	this.axisMap = new haxe_ds_IntMap();
 	this.btnMap = new haxe_ds_IntMap();
+	this.buttonActionArray = [];
+	this.isVisualizer = false;
+	this.isWarning = true;
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " Dom ready :: build: " + "2020-09-18 23:35:35");
+		$global.console.log("" + App.NAME + " Dom ready :: build: " + "2020-09-22 12:21:47");
 		_gthis.init();
 	});
 };
@@ -22,48 +58,80 @@ CCGamepad.main = function() {
 	var app = new CCGamepad();
 };
 CCGamepad.prototype = {
-	setup: function() {
+	setup: function(isVisualizer,isWarning) {
+		if(isWarning == null) {
+			isWarning = true;
+		}
+		if(isVisualizer == null) {
+			isVisualizer = false;
+		}
+		this.isVisualizer = isVisualizer;
+		this.isWarning = isWarning;
 		this.init();
 	}
-	,onButton: function(func,arr) {
-		var action = new Action(func,arr);
-		this._options.onButton = action;
+	,onButton: function(buttonID,func,isTriggeredOnce) {
+		if(isTriggeredOnce == null) {
+			isTriggeredOnce = false;
+		}
+		var action = new Action(func,isTriggeredOnce);
+		action.set_id(buttonID);
+		action.set_description(CCGamepad.BUTTON_MAP.h[buttonID]);
+		this.buttonActionArray.push(action);
 	}
-	,onButtonOnce: function(id,func,arr) {
-		var action = new Action(func,arr,true);
-		action.btnid(id);
-		this._options.onButton = action;
+	,onButtonOnce: function(buttonID,func) {
+		this.onButton(buttonID,func,true);
 	}
-	,onAxis: function(func,arr) {
-		this._options.onAxis = func;
-		this._options.onAxisParams = arr;
+	,onSelect: function(func,isTriggeredOnce) {
+		if(isTriggeredOnce == null) {
+			isTriggeredOnce = false;
+		}
+		var action = new Action(func,isTriggeredOnce);
+		action.set_id(CCGamepad.BUTTON_SELECT);
+		this.buttonActionArray.push(action);
 	}
-	,onSelect: function(func,arr) {
-		var action = new Action(func,arr);
-		this._options.onSelect = action;
+	,onSelectOnce: function(func) {
+		this.onSelect(func,true);
 	}
-	,onSelectOnce: function(func,arr) {
-		var action = new Action(func,arr,true);
-		this._options.onSelect = action;
+	,onStart: function(func,isTriggeredOnce) {
+		if(isTriggeredOnce == null) {
+			isTriggeredOnce = false;
+		}
+		var action = new Action(func,isTriggeredOnce);
+		action.set_id(CCGamepad.BUTTON_START);
+		this.buttonActionArray.push(action);
 	}
-	,onLeftBottomOnce: function(func,arr) {
-		var action = new Action(func,arr,true);
-		this._options.onLeftBottom = action;
+	,onStartOnce: function(func) {
+		this.onStart(func,true);
 	}
-	,onRightBottomOnce: function(func,arr) {
-		var action = new Action(func,arr,true);
-		this._options.onRightBottom = action;
+	,onLeftBottom: function(func,isTriggeredOnce) {
+		if(isTriggeredOnce == null) {
+			isTriggeredOnce = false;
+		}
+		var action = new Action(func,isTriggeredOnce);
+		action.set_id(CCGamepad.BUTTON_LEFT_BOTTOM);
+		this.buttonActionArray.push(action);
 	}
-	,onStart: function(func,arr) {
-		var action = new Action(func,arr);
-		this._options.onStart = action;
+	,onLeftBottomOnce: function(func) {
+		this.onLeftBottom(func,true);
 	}
-	,onStartOnce: function(func,arr) {
-		var action = new Action(func,arr,true);
-		this._options.onStart = action;
+	,onRightBottom: function(func,isTriggeredOnce) {
+		if(isTriggeredOnce == null) {
+			isTriggeredOnce = false;
+		}
+		var action = new Action(func,isTriggeredOnce);
+		action.set_id(CCGamepad.BUTTON_RIGHT_BOTTOM);
+		this.buttonActionArray.push(action);
+	}
+	,onRightBottomOnce: function(func) {
+		this.onRightBottom(func,true);
+	}
+	,onAxis: function(func) {
+		this.onAxisFunc = func;
 	}
 	,init: function() {
-		this.setupWarning();
+		if(this.isWarning) {
+			this.setupWarning();
+		}
 		this.setupListeners();
 	}
 	,setupWarning: function() {
@@ -127,23 +195,30 @@ CCGamepad.prototype = {
 		var pre = window.document.createElement("div");
 		pre.innerText = "- index: " + gamepad.index + "\n- id: \"" + gamepad.id + "\"\n- timestamp: " + gamepad.timestamp + "\n- mapping: " + gamepad.mapping + "\n- connected: " + (gamepad.connected == null ? "null" : "" + gamepad.connected) + "\n- buttons: " + gamepad.buttons.length + "\n- axes: " + gamepad.axes.length;
 		d.appendChild(pre);
+		window.document.body.appendChild(d);
+		var heart = window.document.createElement("span");
+		heart.id = "heart";
+		heart.textContent = "❤";
+		var w = window.document.body.clientWidth;
+		var h = window.document.body.clientHeight;
+		heart.setAttribute("style","display: block;position: absolute;top: " + h / 2 + "px;left: " + w / 2 + "px;");
+		window.document.body.appendChild(heart);
+	}
+	,onGamepadConnectedHandler: function(e) {
+		$global.console.log("Gamepad connected",e.gamepad);
+		if(this.isVisualizer) {
+			this.setupInterface();
+		}
 		var warningDiv = window.document.getElementById("gamepad-warning");
 		if(warningDiv != null) {
 			warningDiv.style.display = "none";
 		}
-		window.document.body.appendChild(d);
-		$global.console.warn("TODO: remove this element better");
-		d.style.display = "none";
 		window.document.body.focus();
-	}
-	,onGamepadConnectedHandler: function(e) {
-		$global.console.log("Gamepad connected",e.gamepad);
-		this.setupInterface();
 		this.gameLoop();
 	}
 	,onGamepadDisconnectedHandler: function(e) {
 		$global.console.log("Gamepad disconnected",e.gamepad);
-		window.cancelAnimationFrame(this.start);
+		window.cancelAnimationFrame(this.requestID);
 	}
 	,onGamepadButtonDownHandler: function(e) {
 		$global.console.log("Gamepad button down",e.button,e.gamepad);
@@ -156,10 +231,12 @@ CCGamepad.prototype = {
 	}
 	,gameLoop: function(value) {
 		var gamepad = $global.navigator.getGamepads()[0];
-		var el = this.btnMap.iterator();
-		while(el.hasNext()) {
-			var el1 = el.next();
-			el1.classList.remove("pressed");
+		if(this.isVisualizer) {
+			var el = this.btnMap.iterator();
+			while(el.hasNext()) {
+				var el1 = el.next();
+				el1.classList.remove("pressed");
+			}
 		}
 		if(this.previousButtonID != null && !gamepad.buttons[this.previousButtonID].pressed) {
 			this.previousButtonID = null;
@@ -170,90 +247,58 @@ CCGamepad.prototype = {
 			var i = _g++;
 			var currentButton = gamepad.buttons[i];
 			if(currentButton.pressed) {
-				var el = this.btnMap.h[i];
-				el.classList.add("pressed");
-				this.btnNameField.innerText = CCGamepad.BUTTON_MAP.h[i];
-				switch(i) {
-				case CCGamepad.BUTTON_LEFT_BOTTOM:
-					if(this._options.onLeftBottom != null) {
-						var _func = this._options.onLeftBottom.func;
-						var _arr = this._options.onLeftBottom.arr != null ? this._options.onLeftBottom.arr : [gamepad.timestamp];
-						if(this._options.onLeftBottom.isOnce == true && this.previousButtonID != i) {
-							_func.apply(_func,_arr);
-						} else if(this._options.onLeftBottom.isOnce == false) {
-							_func.apply(_func,_arr);
-						}
-					}
-					break;
-				case CCGamepad.BUTTON_RIGHT_BOTTOM:
-					if(this._options.onRightBottom != null) {
-						var _func1 = this._options.onRightBottom.func;
-						var _arr1 = this._options.onRightBottom.arr != null ? this._options.onRightBottom.arr : [gamepad.timestamp];
-						if(this._options.onRightBottom.isOnce == true && this.previousButtonID != i) {
-							_func1.apply(_func1,_arr1);
-						} else if(this._options.onRightBottom.isOnce == false) {
-							_func1.apply(_func1,_arr1);
-						}
-					}
-					break;
-				case CCGamepad.BUTTON_SELECT:
-					if(this._options.onSelect != null) {
-						var _func2 = this._options.onSelect.func;
-						var _arr2 = this._options.onSelect.arr != null ? this._options.onSelect.arr : [gamepad.timestamp];
-						if(this._options.onSelect.isOnce == true && this.previousButtonID != i) {
-							_func2.apply(_func2,_arr2);
-						} else if(this._options.onSelect.isOnce == false) {
-							_func2.apply(_func2,_arr2);
-						}
-					}
-					break;
-				case CCGamepad.BUTTON_START:
-					if(this._options.onStart != null) {
-						var _func3 = this._options.onStart.func;
-						var _arr3 = this._options.onStart.arr != null ? this._options.onStart.arr : [gamepad.timestamp];
-						if(this._options.onStart.isOnce == true && this.previousButtonID != i) {
-							_func3.apply(_func3,_arr3);
-						} else if(this._options.onStart.isOnce == false) {
-							_func3.apply(_func3,_arr3);
-						}
-					}
-					break;
-				default:
-					if(this._options.onButton != null) {
-						var _func4 = this._options.onButton.func;
-						var _arr4 = this._options.onButton.arr != null ? this._options.onButton.arr : [CCGamepad.BUTTON_MAP.h[i]];
-						if(this.previousButtonID != i && this._options.onButton.id == i) {
-							_func4.apply(_func4,_arr4);
+				if(this.isVisualizer) {
+					var el = this.btnMap.h[i];
+					el.classList.add("pressed");
+					this.btnNameField.innerText = CCGamepad.BUTTON_MAP.h[i];
+				}
+				var _g2 = 0;
+				var _g3 = this.buttonActionArray.length;
+				while(_g2 < _g3) {
+					var j = _g2++;
+					var _action = this.buttonActionArray[j];
+					if(_action.get_id() == i) {
+						_action.set_gamepadButton(currentButton);
+						_action.set_timestamp(new Date().getTime());
+						if(_action.isOnce == true && this.previousButtonID != i) {
+							_action.func.apply(_action.func,[_action]);
+						} else if(_action.isOnce == false) {
+							_action.func.apply(_action.func,[_action]);
 						}
 					}
 				}
 				this.previousButtonID = i;
 			}
 		}
-		var axes = window.document.getElementsByClassName("axis");
 		var _g = 0;
 		var _g1 = gamepad.axes.length;
 		while(_g < _g1) {
 			var i = _g++;
-			var a = axes[i];
-			a.innerHTML = i + ": " + gamepad.axes[i];
-			a.setAttribute("value",Std.string(gamepad.axes[i] + 1));
 			var joystickX = this.applyDeadzone(gamepad.axes[gamepad.axes.length - 2],0.25);
 			var joystickY = this.applyDeadzone(gamepad.axes[gamepad.axes.length - 1],0.25);
 			var joystickStr = "{x:" + joystickX + ",y:" + joystickY + "}";
 			var joystickObj = { x : joystickX, y : joystickY, desc : CCGamepad.AXIS_MAP.h[joystickStr]};
-			if(!(joystickX == 0 && joystickY == 0)) {
-				this.btnNameField.innerText = CCGamepad.AXIS_MAP.h[joystickStr];
+			if(this.isVisualizer) {
+				var axes = window.document.getElementsByClassName("axis");
+				var a = axes[i];
+				a.innerHTML = i + ": " + gamepad.axes[i];
+				a.setAttribute("value",Std.string(gamepad.axes[i] + 1));
+				if(!(joystickX == 0 && joystickY == 0)) {
+					this.btnNameField.innerText = CCGamepad.AXIS_MAP.h[joystickStr];
+				}
+				var heart = window.document.getElementById("heart");
+				heart.style.left = Std.parseInt(heart.style.left) + joystickX + "px";
+				heart.style.top = Std.parseInt(heart.style.top) + joystickY + "px";
 			}
-			if(this._options.onAxis != null) {
+			if(this.onAxisFunc != null) {
 				if(joystickX != 0 || joystickY != 0) {
-					var _func = this._options.onAxis;
-					var _arr = this._options.onAxisParams != null ? this._options.onAxisParams : [joystickObj];
+					var _func = this.onAxisFunc;
+					var _arr = [joystickObj];
 					_func.apply(_func,_arr);
 				}
 			}
 		}
-		this.start = window.requestAnimationFrame($bind(this,this.gameLoop));
+		this.requestID = window.requestAnimationFrame($bind(this,this.gameLoop));
 	}
 	,applyDeadzone: function(number,threshold) {
 		var percentage = (Math.abs(number) - threshold) / (1 - threshold);
@@ -264,19 +309,39 @@ CCGamepad.prototype = {
 	}
 	,__class__: CCGamepad
 };
-var Action = function(func,arr,isOnce) {
+var Action = function(func,isOnce) {
 	if(isOnce == null) {
 		isOnce = false;
 	}
 	this.isOnce = false;
 	this.func = func;
-	this.arr = arr;
 	this.isOnce = isOnce;
 };
 Action.__name__ = true;
 Action.prototype = {
-	btnid: function(id) {
-		this.id = id;
+	get_id: function() {
+		return this.id;
+	}
+	,set_id: function(value) {
+		return this.id = value;
+	}
+	,get_gamepadButton: function() {
+		return this.gamepadButton;
+	}
+	,set_gamepadButton: function(value) {
+		return this.gamepadButton = value;
+	}
+	,get_timestamp: function() {
+		return this.timestamp;
+	}
+	,set_timestamp: function(value) {
+		return this.timestamp = value;
+	}
+	,get_description: function() {
+		return this.description;
+	}
+	,set_description: function(value) {
+		return this.description = value;
 	}
 	,__class__: Action
 };
@@ -285,7 +350,7 @@ var NavigationGamepad = function() {
 	this.current = 0;
 	var _gthis = this;
 	window.document.addEventListener("DOMContentLoaded",function(event) {
-		$global.console.log("" + model_constants_App.NAME + " NavigationGamepad :: build: " + "2020-09-18 23:35:35");
+		$global.console.log("" + App.NAME + " NavigationGamepad :: build: " + "2020-09-22 12:21:47");
 		_gthis.init();
 	});
 };
@@ -300,9 +365,6 @@ NavigationGamepad.prototype = {
 		var gamePad = new SNES();
 		gamePad.setup();
 		gamePad.onStartOnce($bind(this,this.onStartHandler));
-		gamePad.onLeftBottomOnce($bind(this,this.onLeftBottomHandler));
-		gamePad.onRightBottomOnce($bind(this,this.onRightBottomHandler));
-		gamePad.onButtonOnce(CCGamepad.BUTTON_B,$bind(this,this.onButtonB));
 	}
 	,onButtonB: function(e) {
 		$global.console.log("onSelectHandler: ",e);
@@ -346,7 +408,7 @@ NavigationGamepad.prototype = {
 	,__class__: NavigationGamepad
 };
 var SNES = function() {
-	$global.console.log("" + model_constants_App.NAME + " SNES :: build: " + "2020-09-18 23:35:35");
+	$global.console.log("" + App.NAME + " SNES :: build: " + "2020-09-22 12:21:47");
 	CCGamepad.call(this);
 };
 SNES.__name__ = true;
@@ -359,9 +421,26 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
-var haxe_IMap = function() { };
-haxe_IMap.__name__ = true;
-haxe_IMap.__isInterface__ = true;
+Std.parseInt = function(x) {
+	if(x != null) {
+		var _g = 0;
+		var _g1 = x.length;
+		while(_g < _g1) {
+			var i = _g++;
+			var c = x.charCodeAt(i);
+			if(c <= 8 || c >= 14 && c != 32 && c != 45) {
+				var nc = x.charCodeAt(i + 1);
+				var v = parseInt(x,nc == 120 || nc == 88 ? 16 : 10);
+				if(isNaN(v)) {
+					return null;
+				} else {
+					return v;
+				}
+			}
+		}
+	}
+	return null;
+};
 var haxe_Exception = function(message,previous,native) {
 	Error.call(this,message);
 	this.message = message;
@@ -395,35 +474,6 @@ haxe_ValueException.__super__ = haxe_Exception;
 haxe_ValueException.prototype = $extend(haxe_Exception.prototype,{
 	__class__: haxe_ValueException
 });
-var haxe_ds_IntMap = function() {
-	this.h = { };
-};
-haxe_ds_IntMap.__name__ = true;
-haxe_ds_IntMap.__interfaces__ = [haxe_IMap];
-haxe_ds_IntMap.prototype = {
-	keys: function() {
-		var a = [];
-		for( var key in this.h ) if(this.h.hasOwnProperty(key)) a.push(key | 0);
-		return new haxe_iterators_ArrayIterator(a);
-	}
-	,iterator: function() {
-		return { ref : this.h, it : this.keys(), hasNext : function() {
-			return this.it.hasNext();
-		}, next : function() {
-			var i = this.it.next();
-			return this.ref[i];
-		}};
-	}
-	,__class__: haxe_ds_IntMap
-};
-var haxe_ds_StringMap = function() {
-	this.h = Object.create(null);
-};
-haxe_ds_StringMap.__name__ = true;
-haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
-haxe_ds_StringMap.prototype = {
-	__class__: haxe_ds_StringMap
-};
 var haxe_iterators_ArrayIterator = function(array) {
 	this.current = 0;
 	this.array = array;
@@ -618,14 +668,14 @@ js_Boot.__isNativeObj = function(o) {
 js_Boot.__resolveNativeClass = function(name) {
 	return $global[name];
 };
-var model_constants_App = function() { };
-model_constants_App.__name__ = true;
 var $_;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $global.$haxeUID++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
 $global.$haxeUID |= 0;
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
+Date.prototype.__class__ = Date;
+Date.__name__ = "Date";
 var Int = { };
 var Dynamic = { };
 var Float = Number;
@@ -633,6 +683,7 @@ var Bool = Boolean;
 var Class = { };
 var Enum = { };
 js_Boot.__toStr = ({ }).toString;
+App.NAME = "[cc-gamepad]";
 CCGamepad.AXIS_RIGHT = "{x:1,y:0}";
 CCGamepad.AXIS_LEFT = "{x:-1,y:0}";
 CCGamepad.AXIS_DOWN = "{x:0,y:1}";
@@ -704,7 +755,6 @@ SNES.BUTTON_LEFT_BOTTOM = 4;
 SNES.BUTTON_RIGHT_BOTTOM = 5;
 SNES.BUTTON_SELECT = 8;
 SNES.BUTTON_START = 9;
-model_constants_App.NAME = "[cc-gamepad]";
 NavigationGamepad.main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
