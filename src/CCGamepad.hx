@@ -118,6 +118,14 @@ class CCGamepad {
 		init();
 	}
 
+	public function setVisualizer(isVisualizer:Bool = false) {
+		this.isVisualizer = isVisualizer;
+	}
+
+	public function setWarning(isWarning:Bool = true) {
+		this.isWarning = isWarning;
+	}
+
 	// ____________________________________ buttons ____________________________________
 
 	/**
@@ -231,8 +239,14 @@ class CCGamepad {
 		div.setAttribute('style',
 			'background-color: white;width: 300px;text-align: center;border: 1px solid rgba(0, 0, 0, .2);border-radius: .3rem;padding: 1rem 1rem;');
 		div.innerHTML = '<i class="fa fa-gamepad fa-5x"></i><h2>No gamepad detected</h2><p>If you have one, make sure it\'s plugged in / paired, and press buttons to wake it up.</p>';
+
 		containerDiv.appendChild(div);
 		document.body.appendChild(containerDiv);
+
+		containerDiv.onclick = (e) -> {
+			// console.log(e);
+			containerDiv.style.display = "none";
+		}
 	}
 
 	function setupListeners() {
